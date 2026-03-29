@@ -1,0 +1,46 @@
+'use strict';
+
+require('./env-loader');
+
+const path = require('path');
+
+/**
+ * 本地开发环境配置（示例文件）
+ * 使用方法：复制本文件为 config.local.js，填入你自己的密钥
+ *   cp config.local.js.example config.local.js
+ */
+module.exports = appInfo => {
+  const config = {};
+  const isLocal = process.env.DEPLOY_MODE === 'localhost';
+
+  config.development = {
+    ignoreDirs: ['app/prompts', 'temp', 'logs', 'run'],
+  };
+
+  /* 仅 network 模式下覆盖数据库配置（指向本地 MySQL 开发库） */
+  if (!isLocal) {
+    config.sequelize = {
+      dialect: 'mysql',
+      host: '127.0.0.1',
+      port: 3306,
+      database: 'aistory_weaver',
+      username: 'root',
+      password: 'your_mysql_password',
+      timezone: '+08:00',
+      define: {
+        timestamps: true,
+        underscored: true,
+        freezeTableName: true,
+        charset: 'utf8mb4',
+        collate: 'utf8mb4_general_ci',
+      },
+      dialectOptions: {
+        dateStrings: true,
+        typeCast: true,
+      },
+      logging: false,
+    };
+  }
+
+  return config;
+};

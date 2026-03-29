@@ -1,0 +1,51 @@
+{
+  "name": "storyweaver-api",
+  "version": "1.0.0",
+  "description": "知剧AI 短剧平台 - 后端API服务",
+  "private": true,
+  "egg": {
+    "framework": "egg"
+  },
+  "dependencies": {
+    "@ai-sdk/deepseek": "^2.0.24",
+    "@ai-sdk/openai": "^3.0.41",
+    "ai": "^6.0.116",
+    "alipay-sdk": "^4.14.0",
+    "bcryptjs": "^2",
+    "dayjs": "^1",
+    "dotenv": "^16",
+    "docx": "^9.2.0",
+    "egg": "^3",
+    "egg-cors": "^2",
+    "egg-jwt": "^3",
+    "egg-redis": "^2.6.1",
+    "egg-scripts": "^2",
+    "egg-sequelize": "^6",
+    "egg-validate": "^2",
+    "egg-view-nunjucks": "^2.3.0",
+    "hashids": "^2.3.0",
+    "mysql2": "^3",
+    "sqlite3": "^5",
+    "openai": "^6.21.0",
+    "sharp": "^0.34.5",
+    "svg-captcha": "^1.4.0",
+    "uuid": "^11.0.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "egg-bin": "^6",
+    "egg-mock": "^5",
+    "eslint": "^8",
+    "eslint-config-egg": "^13"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "egg-scripts start --daemon --title=storyweaver-api --env=prod --workers=1",
+    "stop": "egg-scripts stop --title=storyweaver-api",
+    "dev": "egg-bin dev",
+    "test": "egg-bin test",
+    "ci": "egg-bin cov"
+  }
+}

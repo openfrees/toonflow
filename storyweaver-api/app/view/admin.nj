@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>知剧AI - 管理后台</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>" />
+  <!-- Element Plus CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.9.1/dist/index.css" />
+  <!-- 管理后台自定义样式 -->
+  <link rel="stylesheet" href="/public/admin/css/admin.css?v={{ cacheVersion }}" />
+</head>
+<body>
+  <div id="admin-app"></div>
+
+  <!-- Vue3 -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.prod.js"></script>
+  <!-- Vue Router -->
+  <script src="https://cdn.jsdelivr.net/npm/vue-router@4.5.0/dist/vue-router.global.prod.js"></script>
+  <!-- Element Plus -->
+  <script src="https://cdn.jsdelivr.net/npm/element-plus@2.9.1/dist/index.full.min.js"></script>
+  <!-- Element Plus 中文语言包 -->
+  <script src="https://cdn.jsdelivr.net/npm/element-plus@2.9.1/dist/locale/zh-cn.min.js"></script>
+  <!-- Element Plus Icons -->
+  <script src="https://cdn.jsdelivr.net/npm/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
+  <!-- Axios -->
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.7.9/dist/axios.min.js"></script>
+
+  <!-- 后端注入管理后台API前缀（安全：前缀由服务端配置决定） -->
+  <script>window.__ADMIN_PREFIX__ = '{{ adminPrefix }}';</script>
+  <!-- 部署模式：localhost=本地开源 / network=商用线上 -->
+  <script>window.__DEPLOY_MODE__ = '{{ deployMode }}';</script>
+
+  <!-- 管理后台 JS -->
+  <script src="/public/admin/js/utils.js?v={{ cacheVersion }}"></script>
+  <script src="/public/admin/js/pages/login.js?v={{ cacheVersion }}"></script>
+  <script src="/public/admin/js/pages/layout.js?v={{ cacheVersion }}"></script>
+  <script src="/public/admin/js/pages/dashboard.js?v={{ cacheVersion }}"></script>
+  <script src="/public/admin/js/pages/drama-list.js?v={{ cacheVersion }}"></script>
+  <script src="/public/admin/js/pages/drama-edit.js?v={{ cacheVersion }}"></script>
+  <script src="/public/admin/js/pages/genre.js?v={{ cacheVersion }}"></script>
+  <script src="/public/admin/js/pages/feedback.js?v={{ cacheVersion }}"></script>
+  <script src="/public/admin/js/pages/redeem.js?v={{ cacheVersion }}"></script>
+  <script src="/public/admin/js/pages/redeem-log.js?v={{ cacheVersion }}"></script>
+  <script src="/public/admin/js/pages/vip-config.js?v={{ cacheVersion }}"></script>
+  <script src="/public/admin/js/pages/order.js?v={{ cacheVersion }}"></script>
+  <script src="/public/admin/js/pages/user.js?v={{ cacheVersion }}"></script>
+  <script src="/public/admin/js/pages/system-config.js?v={{ cacheVersion }}"></script>
+  <script src="/public/admin/js/app.js?v={{ cacheVersion }}"></script>
+</body>
+</html>

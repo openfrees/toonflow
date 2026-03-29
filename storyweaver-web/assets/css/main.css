@@ -1,0 +1,113 @@
+/* ========================================
+ * 全局样式 - 知剧AI（浅色主题）
+ * ======================================== */
+
+:root {
+  /* 主色 - 暖橙粉渐变 */
+  --color-primary: #ff6b35;
+  --color-primary-light: #ff8f65;
+  --color-primary-gradient: linear-gradient(135deg, #ff6b35, #f7418f);
+  --color-primary-bg: rgba(255, 107, 53, 0.08);
+
+  /* 背景 */
+  --color-bg: #f5f6fa;
+  --color-bg-white: #ffffff;
+  --color-bg-card: #ffffff;
+  --color-bg-sidebar: #ffffff;
+  --color-bg-hover: #f8f9fc;
+
+  /* 文字 */
+  --color-text: #1a1a2e;
+  --color-text-secondary: #8c8c9a;
+  --color-text-light: #b0b0be;
+
+  /* 边框 */
+  --color-border: #eeeff3;
+  --color-border-light: #f2f3f7;
+
+  /* 辅助色 */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #6366f1;
+
+  /* 标签色 */
+  --tag-male: #4a90d9;
+  --tag-female: #e8668a;
+  --tag-genre: #8b5cf6;
+
+  /* 圆角/阴影 */
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 4px;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.16);
+  --shadow-lg: 0 4px 24px rgba(0, 0, 0, 0.08);
+
+  /* 侧边栏宽度 */
+  --sidebar-width: 100px;
+}
+
+/* Reset */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: var(--color-primary-light);
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  font-family: inherit;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}

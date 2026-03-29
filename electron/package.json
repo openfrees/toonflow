@@ -1,0 +1,83 @@
+{
+  "name": "zhijuai-desktop",
+  "productName": "知剧AI",
+  "version": "1.0.0",
+  "description": "知剧AI - 智能短剧创作平台（桌面版）",
+  "main": "main.js",
+  "author": "知剧AI",
+  "license": "MIT",
+  "scripts": {
+    "dev": "electron .",
+    "build:prepare": "bash scripts/build.sh",
+    "build:mac": "npm run build:prepare && electron-builder --mac",
+    "build:win": "npm run build:prepare && electron-builder --win",
+    "build:all": "npm run build:prepare && electron-builder --mac --win"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@electron/rebuild": "^3.7.1",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.zhijuai.desktop",
+    "productName": "知剧AI",
+    "copyright": "Copyright © 2026 知剧AI",
+    "asar": false,
+    "files": [
+      "main.js",
+      "preload.js"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/server",
+        "to": "server",
+        "filter": [
+          "**/*",
+          "!data/**",
+          "!logs/**",
+          "!run/**",
+          "!temp/**",
+          "!*.log"
+        ]
+      },
+      {
+        "from": "resources/web",
+        "to": "server/web",
+        "filter": ["**/*"]
+      }
+    ],
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "category": "public.app-category.productivity",
+      "icon": "icons/icon.icns"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "icons/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "installerLanguages": ["zh_CN"],
+      "language": "2052"
+    },
+    "dmg": {
+      "contents": [
+        { "x": 130, "y": 220 },
+        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+      ]
+    }
+  }
+}

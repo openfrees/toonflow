@@ -1,0 +1,239 @@
+<template>
+  <aside class="sidebar">
+    <!-- Logo -->
+    <div class="sidebar__logo">
+      <span class="sidebar__logo-icon">✦</span>
+      <span class="sidebar__logo-text">创剧AI</span>
+    </div>
+
+    <!-- 主导航（分组 + 分隔线） -->
+    <nav class="sidebar__nav">
+      <template v-for="(group, gi) in navGroups" :key="gi">
+        <!-- 分组间分隔线 -->
+        <div v-if="gi > 0" class="sidebar__divider"></div>
+        <template v-for="item in group" :key="item.path">
+          <!-- 不需要登录的页面：使用真实 <a> 标签，SEO 友好 -->
+          <a
+            v-if="!item.requireAuth"
+            :href="item.path"
+            class="sidebar__item"
+            :class="{ 'sidebar__item--active': isActive(item.path) }"
+          >
+            <Icon :name="item.icon" class="sidebar__item-icon" size="22" />
+            <span class="sidebar__item-label">{{ item.label }}</span>
+          </a>
+          <!-- 需要登录的页面：使用 <a> 标签 + 点击拦截 -->
+          <a
+            v-else
+            href="javascript:;"
+            class="sidebar__item"
+            :class="{ 'sidebar__item--active': isActive(item.path) }"
+            @click="handleAuthClick(item.path, $event)"
+          >
+            <Icon :name="item.icon" class="sidebar__item-icon" size="22" />
+            <span class="sidebar__item-label">{{ item.label }}</span>
+          </a>
+        </template>
+      </template>
+    </nav>
+
+    <!-- 底部操作 -->
+    <div class="sidebar__footer">
+      <div class="sidebar__footer-item">
+        <Icon name="lucide:smartphone" class="sidebar__footer-icon" size="18" />
+        <span class="sidebar__footer-label">关注小程序</span>
+      </div>
+      <div class="sidebar__footer-row">
+        <span class="sidebar__footer-link">手册</span>
+        <span class="sidebar__footer-link">客服</span>
+      </div>
+      <div class="sidebar__footer-row">
+        <span class="sidebar__footer-link">定价</span>
+        <span class="sidebar__footer-link">建议</span>
+      </div>
+    </div>
+  </aside>
+</template>
+
+<script setup>
+/**
+ * 左侧导航栏组件
+ */
+import { useUserStore } from '~/stores/user'
+
+const route = useRoute()
+const userStore = useUserStore()
+
+/* 导航分组：首页+作品 | 小说转剧本+写剧本+评剧本 | 我的 */
+const navGroups = [
+  [
+    { icon: 'lucide:house', label: '首页', path: '/', requireAuth: false },
+    { icon: 'lucide:folder-open', label: '作品', path: '/works', requireAuth: true },
+    // { icon: 'lucide:megaphone', label: '快讯', path: '/news', requireAuth: false },
+  ],
+  [
+    { icon: 'lucide:book-text', label: '小说转剧本', path: '/novel-to-script', requireAuth: true },
+    { icon: 'lucide:pen-line', label: '写剧本', path: '/write', requireAuth: true },
+    { icon: 'lucide:clipboard-check', label: '评剧本', path: '/review', requireAuth: true },
+    // { icon: 'lucide:clapperboard', label: '拆短片', path: '/analyze', requireAuth: true },
+    // { icon: 'lucide:video', label: '做短片', path: '/produce', requireAuth: true },
+  ],
+  [
+    // { icon: 'lucide:image', label: '作图', path: '/design', requireAuth: true },
+    { icon: 'lucide:user', label: '我的', path: '/user/profile', requireAuth: true },
+  ],
+]
+
+const isActive = (path) => {
+  if (path === '/') return route.path === '/'
+  return route.path.startsWith(path)
+}
+
+/**
+ * 处理需要登录的导航点击
+ * @param {string} path - 目标路径
+ * @param {Event} event - 点击事件
+ */
+const handleAuthClick = (path, event) => {
+  event.preventDefault()
+
+  if (userStore.isLoggedIn) {
+    // 已登录：直接跳转
+    navigateTo(path)
+  } else {
+    // 未登录：弹出登录弹窗，传入目标路径
+    userStore.openLoginModal(path)
+  }
+}
+</script>
+
+<style scoped>
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--sidebar-width);
+  background: var(--color-bg-sidebar);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  padding: 16px 0;
+}
+
+.sidebar__logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 0 20px;
+}
+
+.sidebar__logo-icon {
+  font-size: 1.6rem;
+  background: var(--color-primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.sidebar__logo-text {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.sidebar__nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 10px;
+}
+
+.sidebar__divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: 6px 8px;
+}
+
+.sidebar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 6px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.sidebar__item:hover {
+  color: var(--color-text);
+  background: var(--color-bg-hover);
+}
+
+.sidebar__item--active {
+  color: #fff !important;
+  background: var(--color-primary-gradient) !important;
+}
+
+.sidebar__item-icon {
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar__item-label {
+  font-size: 0.76rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.sidebar__footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 10px 4px;
+  border-top: 1px solid var(--color-border);
+}
+
+.sidebar__footer-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+}
+
+.sidebar__footer-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar__footer-label {
+  font-size: 0.6rem;
+  color: var(--color-text-secondary);
+}
+
+.sidebar__footer-row {
+  display: flex;
+  gap: 12px;
+}
+
+.sidebar__footer-link {
+  font-size: 0.65rem;
+  color: var(--color-text-light);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.sidebar__footer-link:hover {
+  color: var(--color-primary);
+}
+</style>

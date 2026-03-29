@@ -1,0 +1,48 @@
+.DS_Store
+.idea/
+.cursor/
+
+# Dependencies
+**/node_modules/
+
+# Logs
+*.log
+logs/
+**/logs/
+
+# Runtime files
+run/
+**/run/
+tmp/
+temp/
+
+# Environment files
+storyweaver-api/.env
+storyweaver-api/.env.production
+storyweaver-web/.env.production
+
+# 敏感配置（含密钥，禁止提交）
+storyweaver-api/config/config.local.js
+storyweaver-api/config/config.prod.js
+storyweaver-api/app/cert/
+storyweaver-api/test-alipay.js
+
+# Backend local data
+storyweaver-api/data/
+storyweaver-api/web/
+
+# Frontend build outputs
+storyweaver-web/.nuxt/
+storyweaver-web/.output/
+storyweaver-web/.nitro/
+storyweaver-web/.cache/
+storyweaver-web/dist
+
+# Electron build outputs
+electron/dist/
+electron/resources/
+electron/icons/
+
+# Coverage and reports
+coverage/
+*.lcov
