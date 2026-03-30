@@ -42,7 +42,6 @@ storyweaver-web/dist
 # Electron build outputs
 electron/dist/
 electron/resources/
-electron/icons/
 
 # Coverage and reports
 coverage/

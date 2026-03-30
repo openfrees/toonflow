@@ -1,0 +1,127 @@
+name: Build and Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            target: --mac
+            artifact: mac-builds
+            pattern: "electron/dist/*.dmg"
+          - os: windows-latest
+            target: --win
+            artifact: win-builds
+            pattern: "electron/dist/*.exe"
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # ============ 构建前端 SSG 静态文件 ============
+      - name: Install frontend dependencies
+        working-directory: storyweaver-web
+        run: npm install
+
+      - name: Generate frontend static files
+        working-directory: storyweaver-web
+        run: npm run generate:local
+
+      # ============ 准备 Electron 资源 ============
+      - name: Prepare electron resources
+        shell: bash
+        run: |
+          cd electron
+          rm -rf resources
+          mkdir -p resources/server resources/web
+
+          # 复制前端 SSG 产物
+          cp -r ../storyweaver-web/.output/public/* resources/web/
+
+          # 复制后端代码（用 tar 管道代替 rsync，兼容 Windows）
+          tar -C ../storyweaver-api \
+            --exclude='node_modules' \
+            --exclude='data' \
+            --exclude='logs' \
+            --exclude='run' \
+            --exclude='temp' \
+            --exclude='.DS_Store' \
+            --exclude='*.log' \
+            --exclude='config/config.local.js' \
+            --exclude='config/config.prod.js' \
+            --exclude='.env.production' \
+            --exclude='app/cert' \
+            -cf - . | tar -C resources/server -xf -
+
+          # 强制写入 localhost 模式
+          echo "DEPLOY_MODE=localhost" > resources/server/.env
+
+      # ============ 安装后端依赖 + 重建原生模块 ============
+      - name: Install server production dependencies
+        working-directory: electron/resources/server
+        run: npm install --production
+
+      - name: Rebuild sqlite3 for Electron
+        working-directory: electron
+        run: npx @electron/rebuild -f -w sqlite3 -m resources/server
+
+      # ============ 安装 Electron 依赖 + 打包 ============
+      - name: Install electron dependencies
+        working-directory: electron
+        run: npm install
+
+      - name: Build installer
+        working-directory: electron
+        run: npx electron-builder ${{ matrix.target }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ============ 上传产物 ============
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.pattern }}
+          retention-days: 7
+
+  # ============ 汇总发布到 GitHub Releases ============
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: List release files
+        run: ls -lh dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "知剧AI ${{ github.ref_name }}"
+          draft: false
+          generate_release_notes: true
+          files: dist/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
