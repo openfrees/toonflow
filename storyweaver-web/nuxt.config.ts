@@ -27,6 +27,7 @@ export default defineNuxtConfig({
        * 通过环境变量 NUXT_PUBLIC_DEPLOY_MODE 覆盖 */
       deployMode: 'network',
       /* 平台外链配置：前台页面在 localhost / network 模式下统一复用 */
+      baiduAnalyticsKey: '',
       officialSiteUrl: 'https://www.zhijuu.com',
       giteeRepoUrl: 'https://gitee.com/open_free/toonflow',
       githubRepoUrl: 'https://github.com/open_free/toonflow',

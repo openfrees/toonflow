@@ -97,7 +97,8 @@ class NovelAssetController extends Controller {
       }
 
       const targetPath = path.join(uploadDir, uniqueFilename);
-      fs.renameSync(file.filepath, targetPath);
+      fs.copyFileSync(file.filepath, targetPath);
+      fs.unlinkSync(file.filepath);
 
       const avatarUrl = `/public/uploads/characters/${dateDir}/${uniqueFilename}`;
 
@@ -162,7 +163,8 @@ class NovelAssetController extends Controller {
       }
 
       const targetPath = path.join(uploadDir, uniqueFilename);
-      fs.renameSync(file.filepath, targetPath);
+      fs.copyFileSync(file.filepath, targetPath);
+      fs.unlinkSync(file.filepath);
       const imageUrl = `/public/uploads/scenes/${dateDir}/${uniqueFilename}`;
 
       const parsed = this._safeJsonParse(asset.prompt, {});

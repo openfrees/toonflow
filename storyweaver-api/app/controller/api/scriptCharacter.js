@@ -181,7 +181,8 @@ class ScriptCharacterController extends Controller {
       }
 
       const targetPath = path.join(uploadDir, uniqueFilename);
-      fs.renameSync(file.filepath, targetPath);
+      fs.copyFileSync(file.filepath, targetPath);
+      fs.unlinkSync(file.filepath);
 
       const avatarUrl = `/public/uploads/characters/${dateDir}/${uniqueFilename}`;
 

@@ -6,6 +6,10 @@
   <a href="https://gitee.com/open_free/toonflow.git">
     <img src="https://img.shields.io/badge/Gitee-C71D23?style=flat-square&logo=gitee&logoColor=white" alt="Gitee" />
   </a>
+  &nbsp;|&nbsp;
+  <a href="https://www.zhijuu.com">
+    <img src="https://img.shields.io/badge/官网-www.zhijuu.com-blue?style=flat-square&logo=googlechrome&logoColor=white" alt="官网" />
+  </a>
 </p>
 
 <p align="center">
@@ -14,8 +18,9 @@
 </p>
 
 <div align="center">
-
-<img src="https://www.zhijuu.com/brand-mark-main.svg" alt="知剧AI Logo" height="120"/>
+<a href="https://www.zhijuu.com">
+  <img src="https://www.zhijuu.com/brand-mark-main.svg" alt="知剧AI Logo" height="120"/>
+</a>
 
 # 知剧AI
 
@@ -28,7 +33,12 @@
       前后端与桌面端一体化交付 🔥
     </b>
   </p>
-  > 🚀 **一站式短剧工程**：AI 剧本生成 × 小说转剧本 × 分镜辅助 × 管理后台 × 桌面端封装，全流程覆盖！
+  🚀 **一站式短剧工程**：AI 剧本生成 × 小说转剧本 × 分镜辅助 × 管理后台 × 桌面端封装，全流程覆盖！
+
+  <br />
+  <a href="https://www.zhijuu.com">
+    <img src="https://img.shields.io/badge/官网-www.zhijuu.com-blue?style=for-the-badge&logo=googlechrome&logoColor=white" alt="访问官网" />
+  </a>
 </div>
 
 ---

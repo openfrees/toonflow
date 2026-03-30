@@ -62,8 +62,9 @@ class UploadController extends Controller {
       /* 目标文件路径 */
       const targetPath = path.join(uploadDir, uniqueFilename);
 
-      /* 移动文件到目标位置 */
-      fs.renameSync(file.filepath, targetPath);
+      /* 移动文件到目标位置（用 copy+delete 代替 rename，避免 Linux 跨分区 EXDEV 错误） */
+      fs.copyFileSync(file.filepath, targetPath);
+      fs.unlinkSync(file.filepath);
 
       /* 返回可访问的URL路径 */
       const url = `/public/uploads/feedback/${dateDir}/${uniqueFilename}`;
@@ -71,7 +72,8 @@ class UploadController extends Controller {
       ctx.body = ctx.helper.success({ url }, '上传成功');
 
     } catch (err) {
-      ctx.logger.error('图片上传失败:', err);
+      ctx.logger.error('图片上传失败 [%s]: %s | 临时路径: %s | 目标路径: %s',
+        err.code || 'UNKNOWN', err.message, file?.filepath || 'N/A', targetPath || 'N/A');
       ctx.body = ctx.helper.fail('上传失败，请稍后重试');
     }
   }
