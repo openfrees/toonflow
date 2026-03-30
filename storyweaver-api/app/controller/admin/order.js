@@ -18,7 +18,6 @@ class OrderController extends Controller {
       const data = await ctx.service.admin.order.getStats();
       ctx.body = ctx.helper.success(data);
     } catch (err) {
-      ctx.logger.error('[订单统计] 失败:', err);
       ctx.body = ctx.helper.fail('获取统计数据失败');
     }
   }
@@ -43,7 +42,6 @@ class OrderController extends Controller {
       });
       ctx.body = ctx.helper.paginate(result, page, pageSize);
     } catch (err) {
-      ctx.logger.error('[订单列表] 失败:', err);
       ctx.body = ctx.helper.fail('获取订单列表失败');
     }
   }

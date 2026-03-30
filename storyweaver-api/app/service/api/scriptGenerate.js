@@ -169,10 +169,6 @@ class ScriptGenerateService extends Service {
       { role: 'user', content: userContent },
     ];
 
-    ctx.logger.info(
-      '[ScriptGenerate] 消息构建完成 => 第%d集, system:%d字, user:%d字',
-      episodeData.episode_number, systemContent.length, userContent.length
-    );
 
     return messages;
   }

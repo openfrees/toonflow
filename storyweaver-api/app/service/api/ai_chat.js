@@ -203,12 +203,6 @@ class AiChatService extends Service {
     }
 
     /* 5. 打印参数摘要日志 */
-    ctx.logger.info(
-      '[AI Chat][Prompt] 模板参数替换完成 => 集数:%s, 时长:%s分钟, 总时长:%s小时, 受众:%s, 题材:%s, 角色上限:%s, 场景上限:%s, 字数上限:%s, 台词占比:%s%%',
-      replacements.total_episodes, replacements.duration, replacements.total_duration,
-      replacements.gender, replacements.genres, replacements.max_roles,
-      replacements.max_scenes, replacements.max_words, replacements.dialogue_ratio
-    );
 
     return template;
   }

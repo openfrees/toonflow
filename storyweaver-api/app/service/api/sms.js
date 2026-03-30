@@ -99,14 +99,12 @@ class SmsService extends Service {
     /* 8. 调旦米API发送短信 */
     try {
       await this._callDanmiApi(phone, code);
-      ctx.logger.info('[短信发送成功] phone=%s, code=%s', phone, code);
     } catch (err) {
       /* 发送失败，清除验证码和冷却标记，并回退计数器 */
       await redis.del(codeKey);
       await redis.del(cooldownKey);
       await redis.decr(ipKey);       // 回退IP计数器
       await redis.decr(dailyKey);    // 回退每日计数器
-      ctx.logger.error('[短信发送失败] phone=%s, error=%s', phone, err.message);
       throw new Error('短信发送失败，请稍后重试');
     }
 
@@ -226,10 +224,8 @@ class SmsService extends Service {
       sig,
       accountId: config.accountId,      // 文档要求传 accountId
     };
-    console.log({ ...body, sig: sig.substring(0, 8) + '...' });
     
 
-    ctx.logger.info('[旦米短信请求] url=%s, body=%j', config.apiUrl, { ...body, sig: sig.substring(0, 8) + '...' });
 
     /* 发送HTTP请求 */
     const result = await ctx.curl(config.apiUrl, {
@@ -240,7 +236,6 @@ class SmsService extends Service {
       timeout: 10000,
     });
 
-    ctx.logger.info('[旦米短信响应] status=%d, data=%j', result.status, result.data);
 
     /* 检查响应 */
     if (result.status !== 200) {

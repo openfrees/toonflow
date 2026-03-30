@@ -18,7 +18,6 @@ class UserController extends Controller {
       const data = await ctx.service.admin.user.getStats();
       ctx.body = ctx.helper.success(data);
     } catch (err) {
-      ctx.logger.error('[用户统计] 失败:', err);
       ctx.body = ctx.helper.fail('获取统计数据失败');
     }
   }
@@ -43,7 +42,6 @@ class UserController extends Controller {
       });
       ctx.body = ctx.helper.paginate(result, page, pageSize);
     } catch (err) {
-      ctx.logger.error('[用户列表] 失败:', err);
       ctx.body = ctx.helper.fail('获取用户列表失败');
     }
   }
@@ -67,7 +65,6 @@ class UserController extends Controller {
       await ctx.service.admin.user.updateStatus(id, Number(status));
       ctx.body = ctx.helper.success(null, status === 1 ? '已启用' : '已禁用');
     } catch (err) {
-      ctx.logger.error('[用户状态更新] 失败:', err);
       ctx.body = ctx.helper.fail(err.message || '操作失败');
     }
   }
@@ -85,7 +82,6 @@ class UserController extends Controller {
       const users = await ctx.service.admin.user.searchUsers(keyword);
       ctx.body = ctx.helper.success(users);
     } catch (err) {
-      ctx.logger.error('[用户搜索] 失败:', err);
       ctx.body = ctx.helper.fail('搜索失败');
     }
   }
@@ -108,7 +104,6 @@ class UserController extends Controller {
       const result = await ctx.service.admin.user.destroyUser(id);
       ctx.body = ctx.helper.success(result, '用户数据已全部删除');
     } catch (err) {
-      ctx.logger.error('[用户删除] 失败:', err);
       ctx.body = ctx.helper.fail(err.message || '删除失败');
     }
   }

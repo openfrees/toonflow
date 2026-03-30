@@ -118,8 +118,6 @@ class NovelStoryboardGenerateController extends Controller {
       try {
         structureData = JSON.parse(jsonStr);
       } catch (parseErr) {
-        ctx.logger.error('[NovelStoryboardGenerate] 场景结构 JSON 解析失败: %s\n内容前500字: %s',
-          parseErr.message, jsonStr.substring(0, 500));
         throw new Error('场景结构解析失败');
       }
 
@@ -165,7 +163,6 @@ class NovelStoryboardGenerateController extends Controller {
             }
           } catch (streamErr) {
             if (checkAborted()) break;
-            ctx.logger.error('[NovelStoryboardGenerate] 场景%d第%d次AI调用异常: %s', sceneNum, attempt, streamErr.message);
             if (attempt === 2) {
               try { res.write(`data: ${JSON.stringify({ type: 'error', scene: sceneNum, message: `场景${sceneNum}生成失败，已跳过` })}\n\n`); } catch (_) {}
             }
@@ -192,8 +189,6 @@ class NovelStoryboardGenerateController extends Controller {
             sceneResult = JSON.parse(sceneJson);
             break;
           } catch (parseErr) {
-            ctx.logger.error('[NovelStoryboardGenerate] 场景%d第%d次解析失败: %s\n前500字: %s',
-              sceneNum, attempt, parseErr.message, content.substring(0, 500));
             if (attempt === 2) {
               try { res.write(`data: ${JSON.stringify({ type: 'error', scene: sceneNum, message: `场景${sceneNum}解析失败，已跳过` })}\n\n`); } catch (_) {}
             }
@@ -274,7 +269,6 @@ class NovelStoryboardGenerateController extends Controller {
         saved = true;
       }
       if (!isAborted) {
-        ctx.logger.error('[NovelStoryboardGenerate] 生成异常: %s', err.message);
         try { res.write(`data: ${JSON.stringify({ type: 'error', message: '分镜生成失败，请重试' })}\n\n`); } catch (_) {}
       }
     } finally {
@@ -505,7 +499,6 @@ class NovelStoryboardGenerateController extends Controller {
             }
           } catch (streamErr) {
             if (checkAborted()) break;
-            ctx.logger.error('[NovelVideoStoryboard] 第%d批第%d次AI调用异常: %s', batchNum, attempt, streamErr.message);
             if (attempt === 2) {
               try { res.write(`data: ${JSON.stringify({ type: 'error', batch: batchNum, message: `第${batchNum}批生成失败，已跳过` })}\n\n`); } catch (_) {}
             }
@@ -535,8 +528,6 @@ class NovelStoryboardGenerateController extends Controller {
             batchResult = parsed.shots || [];
             break;
           } catch (parseErr) {
-            ctx.logger.error('[NovelVideoStoryboard] 第%d批第%d次解析失败: %s\n原始内容前500字: %s',
-              batchNum, attempt, parseErr.message, content.substring(0, 500));
             if (attempt === 2) {
               try { res.write(`data: ${JSON.stringify({ type: 'error', batch: batchNum, message: `第${batchNum}批生成失败，已跳过` })}\n\n`); } catch (_) {}
             }
@@ -589,6 +580,7 @@ class NovelStoryboardGenerateController extends Controller {
         saved = true;
       }
     } catch (err) {
+      const isAborted = err.message === 'ABORTED';
       if (!saved) {
         if (completedShots.length > 0) {
           const partialData = JSON.stringify({
@@ -607,8 +599,9 @@ class NovelStoryboardGenerateController extends Controller {
         }
         saved = true;
       }
-      ctx.logger.error('[NovelVideoStoryboard] 生成异常: %s', err.message);
-      try { res.write(`data: ${JSON.stringify({ type: 'error', message: '视频分镜生成失败，请重试' })}\n\n`); } catch (_) {}
+      if (!isAborted) {
+        try { res.write(`data: ${JSON.stringify({ type: 'error', message: '视频分镜生成失败，请重试' })}\n\n`); } catch (_) {}
+      }
     } finally {
       activeVideoGenerations.delete(genKey);
       try { res.write('data: [DONE]\n\n'); } catch (_) {}

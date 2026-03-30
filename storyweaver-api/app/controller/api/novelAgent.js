@@ -76,14 +76,12 @@ class NovelAgentController extends Controller {
       }
     }, 15000);
 
-    ctx.logger.info('[NovelAgent] SSE 连接建立: %s, pid=%d', streamKey, process.pid);
 
     ctx.req.on('close', () => {
       if (!clientAborted) {
         clientAborted = true;
         abortController.abort();
         clearInterval(heartbeatInterval);
-        ctx.logger.info('[NovelAgent] 客户端断开: %s, pid=%d', streamKey, process.pid);
       }
     });
 
@@ -94,22 +92,19 @@ class NovelAgentController extends Controller {
       );
 
       if (!clientAborted) {
-        ctx.logger.info('[NovelAgent] Agent 正常完成: %s, pid=%d', streamKey, process.pid);
         res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
       }
     } catch (err) {
-      if (clientAborted || err.name === 'AbortError') {
-        ctx.logger.info('[NovelAgent] Agent 流被中断: %s, pid=%d', streamKey, process.pid);
-      } else if (err.message === 'MODEL_NOT_CONFIGURED') {
-        ctx.logger.warn('[NovelAgent] 用户未配置AI模型: %s, pid=%d', streamKey, process.pid);
-        try {
-          res.write(`data: ${JSON.stringify({ type: 'error', code: 'MODEL_NOT_CONFIGURED', message: '请先在设置中配置AI模型后再使用Agent功能' })}\n\n`);
-        } catch (_) { /* 连接已断开 */ }
-      } else {
-        ctx.logger.error('[NovelAgent] Agent 未预期错误: %s, pid=%d, error=%s, stack=%s', streamKey, process.pid, err.message, err.stack);
-        try {
-          res.write(`data: ${JSON.stringify({ type: 'error', message: err.message || 'Agent服务异常' })}\n\n`);
-        } catch (_) { /* 连接已断开 */ }
+      if (!clientAborted && err.name !== 'AbortError') {
+        if (err.message === 'MODEL_NOT_CONFIGURED') {
+          try {
+            res.write(`data: ${JSON.stringify({ type: 'error', code: 'MODEL_NOT_CONFIGURED', message: '请先在设置中配置AI模型后再使用Agent功能' })}\n\n`);
+          } catch (_) { /* 连接已断开 */ }
+        } else {
+          try {
+            res.write(`data: ${JSON.stringify({ type: 'error', message: err.message || 'Agent服务异常' })}\n\n`);
+          } catch (_) { /* 连接已断开 */ }
+        }
       }
     } finally {
       clearInterval(heartbeatInterval);

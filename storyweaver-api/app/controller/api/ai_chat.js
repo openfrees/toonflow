@@ -56,12 +56,6 @@ class AiChatController extends Controller {
       realScriptId, message, script
     );
 
-    /* 精简日志：只打印摘要信息，避免海量上下文内容刷屏 */
-    ctx.logger.info('[AI Chat] 消息列表: %d条 | %s',
-      messages.length,
-      messages.map((msg, i) => `[${i}]${msg.role}(${msg.content.length}字)`).join(' → ')
-    );
-
     const aiConfig = await ctx.service.api.modelConfig.getEffectiveAiConfig(userId, 'script_gen');
     if (!aiConfig) {
       ctx.body = ctx.helper.fail('请先在「模型设置」中配置并绑定文字模型', 4001);
@@ -101,12 +95,8 @@ class AiChatController extends Controller {
       ctx.req.on('close', () => {
         if (!saved) {
           clientAborted = true;
-          ctx.logger.info('[AI Chat] ===== 收到客户端暂停信号 =====');
-          ctx.logger.info('[AI Chat] 当前已接收AI内容: %d 字', fullContent.length);
-          ctx.logger.info('[AI Chat] 内容预览: %s', fullContent.slice(0, 300) + (fullContent.length > 300 ? '...' : ''));
           /* 通过 AbortController 中断 DeepSeek 的HTTP请求 */
           abortController.abort();
-          ctx.logger.info('[AI Chat] 已调用 abortController.abort() 中断AI请求');
         }
       });
 
@@ -124,7 +114,6 @@ class AiChatController extends Controller {
 
           /* 如果guard检测到prompt泄露，立即中断并替换全部内容 */
           if (guard.blocked()) {
-            ctx.logger.warn('[AI Chat][ContentGuard] 检测到prompt泄露，已拦截');
             fullContent = BLOCKED_REPLY;
             res.write(`data: ${JSON.stringify({ content: BLOCKED_REPLY })}\n\n`);
             abortController.abort();
@@ -152,24 +141,14 @@ class AiChatController extends Controller {
 
       /* 8. AI回复入库 */
       if (fullContent) {
-        if (clientAborted) {
-          ctx.logger.info('[AI Chat] ===== 开始保存中断内容 =====');
-          ctx.logger.info('[AI Chat] 保存内容长度: %d 字', fullContent.length);
-        }
         await ctx.service.api.aiChat.saveAssistantMessage(
           userId, realScriptId, fullContent, modelName, 0
         );
         saved = true;
-        if (clientAborted) {
-          ctx.logger.info('[AI Chat] ===== 中断内容保存完毕 ✓ =====');
-        }
       }
     } catch (err) {
       /* 流式出错或中断抛出的异常 */
-      if (clientAborted) {
-        ctx.logger.info('[AI Chat] AI流已被中断（AbortError），准备保存部分内容');
-      } else {
-        ctx.logger.error('[AI Stream Error]', err);
+      if (!clientAborted) {
         try {
           res.write(`data: ${JSON.stringify({ error: err.message || 'AI服务异常' })}\n\n`);
         } catch (_) { /* 连接已断开，忽略写入错误 */ }
@@ -185,9 +164,7 @@ class AiChatController extends Controller {
           await ctx.service.api.aiChat.saveAssistantMessage(
             userId, realScriptId, fullContent, modelName, 0
           );
-          ctx.logger.info('[AI Chat] finally兜底保存（%d字）', fullContent.length);
-        } catch (saveErr) {
-          ctx.logger.error('[AI Chat] 兜底保存失败:', saveErr);
+        } catch {
         }
       }
       res.end();
@@ -248,14 +225,9 @@ class AiChatController extends Controller {
     const streamState = activeStreams.get(streamKey);
 
     if (streamState) {
-      ctx.logger.info('[AI Chat] ===== 收到前端停止请求 =====');
-      ctx.logger.info('[AI Chat] streamKey: %s', streamKey);
-      ctx.logger.info('[AI Chat] 当前已接收AI内容: %d 字', streamState.getContent().length);
       streamState.abortController.abort();
-      ctx.logger.info('[AI Chat] 已调用 abort() 中断AI请求');
       ctx.body = ctx.helper.success({ stopped: true });
     } else {
-      ctx.logger.info('[AI Chat] 停止请求：未找到活跃流 streamKey=%s', streamKey);
       ctx.body = ctx.helper.success({ stopped: false, message: '没有进行中的生成' });
     }
   }

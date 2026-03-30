@@ -15,7 +15,6 @@ egg.startCluster({
   port,
   workers: 1,
 }, () => {
-  console.log(`[Launcher] Egg.js server started on port ${port}`);
   if (process.send) {
     process.send('server-ready');
   }

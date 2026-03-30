@@ -396,11 +396,9 @@ class UserService extends Service {
         ctx.helper.removeUploadedFile(filePath);
       }
 
-      ctx.logger.info('[用户删除] 成功 userId=%s, nickname=%s, 删除统计: %j', id, user.nickname, deleted);
       return deleted;
     } catch (err) {
       await transaction.rollback();
-      ctx.logger.error('[用户删除] 事务回滚 userId=%s, error:', id, err);
       throw new Error('删除失败，已回滚: ' + err.message);
     }
   }

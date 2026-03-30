@@ -355,7 +355,6 @@ class NovelProjectController extends Controller {
           characters: latestAssets.characters,
         });
     } catch (err) {
-      ctx.logger.error('[NovelProject] 同步角色失败:', err);
       try {
         writeEvent('error', {
           message: err.message || '同步角色失败，请稍后重试',

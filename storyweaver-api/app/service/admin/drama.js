@@ -72,13 +72,6 @@ class DramaService extends Service {
       type: ctx.model.QueryTypes.SELECT,
     });
 
-    /* 调试日志：查看原始查询结果 */
-    console.log('=== Drama List 查询结果 ===');
-    console.log('查询到的记录数:', rows.length);
-    if (rows.length > 0) {
-      console.log('第一条记录示例:', JSON.stringify(rows[0], null, 2));
-    }
-
     /* ID混淆编码 + 字段映射（转驼峰） */
     const formattedRows = rows.map(item => ({
       ...item,
@@ -86,8 +79,6 @@ class DramaService extends Service {
       createdEpisodes: Number(item.created_episodes) || 0, // 已创建集数（驼峰格式）
     }));
 
-    console.log('格式化后第一条记录:', formattedRows.length > 0 ? JSON.stringify(formattedRows[0], null, 2) : '无数据');
-    console.log('=========================');
 
     return {
       rows: formattedRows,

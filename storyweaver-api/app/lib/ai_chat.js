@@ -19,7 +19,6 @@ const { createDeepSeek } = require('@ai-sdk/deepseek');
 function createClient(config, provider) {
   const providerName = provider || config.defaultProvider || 'deepseek';
   const providerConfig = config[providerName];
-  console.log(`[AI] 使用提供商: ${providerName}, 模型: ${providerConfig?.model}, baseURL: ${providerConfig?.baseURL}`);
 
   if (!providerConfig || !providerConfig.apiKey) {
     throw new Error(`AI提供商 [${providerName}] 未配置或缺少apiKey`);
@@ -98,7 +97,6 @@ async function aiStream(config, params = {}) {
   const clientInfo = createClient(config, params.provider);
   const stepLimit = params.maxStep || (params.tools ? Object.keys(params.tools).length * 5 : 100);
 
-  console.log(`[AI] aiStream: maxStep=${stepLimit}, tools=${Object.keys(params.tools || {}).join(', ')}`);
 
   return streamText({
     model: clientInfo.model,

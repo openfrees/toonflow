@@ -48,8 +48,7 @@ class NovelAgentAdapter {
           ? JSON.parse(dbRecord.data)
           : dbRecord.data;
         return parsed;
-      } catch (e) {
-        console.error('[Adapter] 解析 data 字段失败，回退到拆分字段:', e.message);
+      } catch {
       }
     }
 

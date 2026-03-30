@@ -312,10 +312,6 @@ class NovelScriptGenerateService extends Service {
     ].join('\n'));
 
     const userContent = parts.join('\n\n');
-    ctx.logger.info(
-      '[NovelScriptGenerate] 消息构建完成 => 第%d集, system:%d字, user:%d字',
-      episodeData.episode_number, systemContent.length, userContent.length
-    );
 
     return [
       { role: 'system', content: systemContent },

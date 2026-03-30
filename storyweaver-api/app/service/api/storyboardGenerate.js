@@ -169,8 +169,6 @@ class StoryboardGenerateService extends Service {
       { role: 'user', content: parts.join('\n\n') },
     ];
 
-    ctx.logger.info('[StoryboardGenerate] 场景结构消息构建 => 第%d集, system:%d字, user:%d字',
-      episodeData.episode_number, systemContent.length, parts.join('\n\n').length);
 
     return messages;
   }
@@ -234,9 +232,6 @@ class StoryboardGenerateService extends Service {
       { role: 'user', content: parts.join('\n\n') },
     ];
 
-    ctx.logger.info('[StoryboardGenerate] 场景分镜消息构建 => 第%d集, 场景%d/%d, 镜头%d起, system:%d字, user:%d字',
-      episodeData.episode_number, sceneInfo.scene_number, structureData.scenes.length,
-      shotStart, systemContent.length, parts.join('\n\n').length);
 
     return messages;
   }
@@ -291,10 +286,6 @@ class StoryboardGenerateService extends Service {
       { role: 'user', content: userContent },
     ];
 
-    ctx.logger.info(
-      '[StoryboardGenerate] 消息构建完成 => 第%d集, system:%d字, user:%d字',
-      episodeData.episode_number, systemContent.length, userContent.length
-    );
 
     return messages;
   }
@@ -445,10 +436,6 @@ class StoryboardGenerateService extends Service {
       { role: 'user', content: userContent },
     ];
 
-    ctx.logger.info(
-      '[VideoStoryboard] 消息构建完成 => 第%d集, system:%d字, user:%d字',
-      episodeData.episode_number, systemContent.length, userContent.length
-    );
 
     return messages;
   }
@@ -514,12 +501,6 @@ class StoryboardGenerateService extends Service {
       { role: 'user', content: userContent },
     ];
 
-    ctx.logger.info(
-      '[VideoStoryboard] 分批消息构建 => 第%d集, 批次%d/%d, 镜头%d-%d, system:%d字, user:%d字',
-      episodeData.episode_number, batchIndex, totalBatches,
-      shotNumbers[0], shotNumbers[shotNumbers.length - 1],
-      systemContent.length, userContent.length
-    );
 
     return messages;
   }

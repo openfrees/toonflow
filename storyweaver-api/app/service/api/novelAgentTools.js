@@ -332,12 +332,9 @@ ${formatList(ep.classicQuotes, q => q)}
 
     if (shouldOverwrite) {
       /* 覆盖模式：清空所有未锁定的大纲（对齐 Toonflow clearOutlinesAndScripts） */
-      const deleted = await ctx.model.NovelEpisode.destroy({
+      await ctx.model.NovelEpisode.destroy({
         where: { novel_project_id: projectId, outline_locked: 0 },
       });
-      if (deleted > 0) {
-        console.log(`[saveOutline] 清理旧数据: 删除了 ${deleted} 条大纲`);
-      }
     }
 
     /* 计算起始集数（对齐 Toonflow actualStart 逻辑） */

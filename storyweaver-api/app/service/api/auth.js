@@ -112,7 +112,6 @@ class UserAuthService extends Service {
       { expiresIn: app.config.jwt.expiresIn }
     );
 
-    ctx.logger.info('[localhost] 自动注册新用户 phone=%s, id=%d', phone, user.id);
 
     const membership = await ctx.service.api.membership.getMembershipByUser(user);
     return {

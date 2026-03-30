@@ -78,13 +78,6 @@ class ScriptGenerateController extends Controller {
     /* 构建AI消息 */
     const messages = await ctx.service.api.scriptGenerate.buildEpisodeScriptMessages(script, episode);
 
-    /* 调试日志 */
-    ctx.logger.info('[ScriptGenerate] ========== 台本生成开始 ==========');
-    ctx.logger.info('[ScriptGenerate] 剧集ID: %s, 第%d集', episodeId, episode.episode_number);
-    messages.forEach((msg, i) => {
-      ctx.logger.info('[ScriptGenerate] messages[%d] role=%s (%d字)', i, msg.role, msg.content.length);
-    });
-
     const aiConfig = await ctx.service.api.modelConfig.getEffectiveAiConfig(userId, 'script_gen');
     if (!aiConfig) {
       ctx.body = ctx.helper.fail('请先在「模型设置」中配置并绑定文字模型', 4001);
@@ -122,7 +115,6 @@ class ScriptGenerateController extends Controller {
       ctx.req.on('close', () => {
         if (!saved) {
           clientAborted = true;
-          ctx.logger.info('[ScriptGenerate] 客户端断开，中断生成');
           abortController.abort();
         }
       });
@@ -139,7 +131,6 @@ class ScriptGenerateController extends Controller {
           const safeDelta = guard.push(delta);
 
           if (guard.blocked()) {
-            ctx.logger.warn('[ScriptGenerate] 检测到prompt泄露，已拦截');
             fullContent = BLOCKED_REPLY;
             res.write(`data: ${JSON.stringify({ content: BLOCKED_REPLY })}\n\n`);
             abortController.abort();
@@ -167,18 +158,12 @@ class ScriptGenerateController extends Controller {
       if (fullContent && fullContent !== BLOCKED_REPLY) {
         await ctx.service.api.scriptGenerate.updateScriptStatus(episodeId, 2, fullContent);
         saved = true;
-        ctx.logger.info('[ScriptGenerate] 台本保存成功，第%d集，%d字', episode.episode_number, fullContent.length);
       } else if (!fullContent) {
         /* AI没有返回内容，标记失败 */
         await ctx.service.api.scriptGenerate.updateScriptStatus(episodeId, 3);
       }
     } catch (err) {
-      /* 用户主动停止（APIUserAbortError）或客户端断开，记录为INFO */
-      if (clientAborted || err.name === 'APIUserAbortError' || err.message?.includes('aborted')) {
-        ctx.logger.info('[ScriptGenerate] 生成被用户停止，保存部分内容');
-      } else {
-        /* 真正的异常才记录ERROR */
-        ctx.logger.error('[ScriptGenerate] 生成异常:', err);
+      if (!clientAborted && err.name !== 'APIUserAbortError' && !err.message?.includes('aborted')) {
         try {
           res.write(`data: ${JSON.stringify({ error: err.message || 'AI服务异常' })}\n\n`);
         } catch (_) { /* 连接已断开 */ }
@@ -191,9 +176,7 @@ class ScriptGenerateController extends Controller {
         try {
           /* 客户端中断时保存部分内容，状态标记为已生成（内容可用） */
           await ctx.service.api.scriptGenerate.updateScriptStatus(episodeId, 2, fullContent);
-          ctx.logger.info('[ScriptGenerate] 兜底保存（%d字）', fullContent.length);
         } catch (saveErr) {
-          ctx.logger.error('[ScriptGenerate] 兜底保存失败:', saveErr);
           /* 保存失败则标记为生成失败 */
           try {
             await ctx.service.api.scriptGenerate.updateScriptStatus(episodeId, 3);
@@ -229,7 +212,6 @@ class ScriptGenerateController extends Controller {
     const streamState = activeGenerations.get(genKey);
 
     if (streamState) {
-      ctx.logger.info('[ScriptGenerate] 收到停止请求，episodeId: %s', episodeId);
       streamState.abortController.abort();
       ctx.body = ctx.helper.success({ stopped: true });
     } else {

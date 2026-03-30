@@ -30,7 +30,6 @@ function getSdkInstance(config) {
       /* v4 SDK 使用 endpoint 属性替代旧版 gateway */
       endpoint: config.gateway || 'https://openapi.alipay.com',
     });
-    console.log('[支付宝SDK] 证书模式初始化完成, appId:', config.appId, ', endpoint:', config.gateway || 'https://openapi.alipay.com');
   }
   return _sdkInstance;
 }
@@ -52,11 +51,6 @@ function getSdkInstance(config) {
 async function precreate(config, params) {
   const sdk = getSdkInstance(config);
 
-  console.log('[支付宝预创建] 请求参数:', JSON.stringify({
-    out_trade_no: params.outTradeNo,
-    total_amount: params.totalAmount,
-    subject: params.subject,
-  }));
 
   const result = await sdk.curl('POST', '/v3/alipay/trade/precreate', {
     body: {
@@ -67,7 +61,6 @@ async function precreate(config, params) {
     },
   });
 
-  console.log('[支付宝预创建] 原始响应:', JSON.stringify(result));
 
   /*
    * v4 SDK curl() 返回结构：{ data, responseHttpStatus, traceId }
@@ -79,16 +72,11 @@ async function precreate(config, params) {
   /* 检查是否有错误码（支付宝业务错误） */
   if (responseData.code && responseData.code !== '10000') {
     const errMsg = `支付宝业务错误: [${responseData.code}] ${responseData.msg || ''} - ${responseData.subCode || responseData.sub_code || ''}: ${responseData.subMsg || responseData.sub_msg || ''}`;
-    console.error('[支付宝预创建]', errMsg);
     throw new Error(errMsg);
   }
 
   /* 提取二维码URL，兼容驼峰和下划线两种格式 */
   const qrCode = responseData.qrCode || responseData.qr_code || '';
-
-  if (!qrCode) {
-    console.error('[支付宝预创建] 未返回二维码URL, responseData:', JSON.stringify(responseData));
-  }
 
   return {
     qrCode,
@@ -113,8 +101,6 @@ async function queryTrade(config, outTradeNo) {
       out_trade_no: outTradeNo,
     },
   });
-
-  // console.log('[支付宝查询] 原始响应:', JSON.stringify(result));
 
   /* 从 data 中提取交易信息 */
   const responseData = result.data || result;
@@ -157,11 +143,6 @@ function checkNotifySign(config, postData) {
 async function pagePay(config, params) {
   const sdk = getSdkInstance(config);
 
-  console.log('[支付宝电脑网站支付] 请求参数:', JSON.stringify({
-    out_trade_no: params.outTradeNo,
-    total_amount: params.totalAmount,
-    subject: params.subject,
-  }));
 
   const formHtml = await sdk.pageExec('alipay.trade.page.pay', {
     bizContent: {
@@ -175,7 +156,6 @@ async function pagePay(config, params) {
     notifyUrl: params.notifyUrl || config.notifyUrl,
   });
 
-  console.log('[支付宝电脑网站支付] 表单生成成功');
 
   return formHtml;
 }

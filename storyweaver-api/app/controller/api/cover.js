@@ -115,14 +115,12 @@ class CoverController extends Controller {
         await ctx.service.api.cover.saveCoverPrompt(realId, fullContent.trim(), type);
       }
 
-      ctx.logger.info('[Cover] 描述词已保存(type=%s)', type);
 
       res.write(`data: ${JSON.stringify({
         done: true,
         coverUrl: project.cover || '',
       })}\n\n`);
     } catch (err) {
-      ctx.logger.error('[Cover] 生成描述词失败(type=%s):', type, err);
       try {
         res.write(`data: ${JSON.stringify({ error: err.message || '生成描述词失败' })}\n\n`);
       } catch (_) { /* 连接已断开 */ }
@@ -170,7 +168,6 @@ class CoverController extends Controller {
       return;
     }
 
-    ctx.logger.info('[Cover] 开始生成封面图(type=%s)，描述词: %s', type, coverPrompt.slice(0, 100));
 
     try {
       /* 调用火山引擎Doubao-Seedream生成图片 */
@@ -198,7 +195,6 @@ class CoverController extends Controller {
         return;
       }
 
-      ctx.logger.info('[Cover] 图片生成成功(type=%s)，远程URL: %s', type, imageUrl);
 
       /* 下载图片到本地 */
       const coversDir = path.join(app.baseDir, 'app/public/covers');
@@ -211,17 +207,14 @@ class CoverController extends Controller {
       const filePath = path.join(coversDir, fileName);
 
       await this._downloadImage(imageUrl, filePath);
-      ctx.logger.info('[Cover] 图片已下载到: %s', filePath);
 
       /* 保存路径到对应模型 */
       const coverPath = `/public/covers/${fileName}`;
       await ctx.service.api.cover.saveCoverImage(realId, coverPath, type);
 
-      ctx.logger.info('[Cover] 封面图已保存(type=%s)', type);
 
       ctx.body = ctx.helper.success({ cover: coverPath }, '封面图生成成功');
     } catch (err) {
-      ctx.logger.error('[Cover] 生成封面图失败(type=%s):', type, err);
       ctx.body = ctx.helper.fail(`封面图生成失败: ${err.message}`);
     }
   }

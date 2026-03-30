@@ -195,7 +195,6 @@ class ScriptCharacterController extends Controller {
 
       ctx.body = ctx.helper.success({ avatar: avatarUrl }, '上传成功');
     } catch (err) {
-      ctx.logger.error('角色头像上传失败:', err);
       ctx.body = ctx.helper.fail('上传失败，请稍后重试');
     }
   }
@@ -292,14 +291,12 @@ class ScriptCharacterController extends Controller {
         avatarPrompt,
       });
 
-      ctx.logger.info('[Character] 角色图生成成功');
 
       ctx.body = ctx.helper.success({
         avatar: avatarPath,
         avatarPrompt,
       }, '头像生成成功');
     } catch (err) {
-      ctx.logger.error('[Character] AI生成头像失败:', err);
       ctx.body = ctx.helper.fail(`头像生成失败: ${err.message}`);
     }
   }
@@ -420,14 +417,12 @@ class ScriptCharacterController extends Controller {
       if (avatarPrompt) {
         await ctx.service.api.scriptCharacter.update(characterId, userId, { avatarPrompt });
 
-        ctx.logger.info('[Character] 描述词已保存');
 
         res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
       } else {
         res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
       }
     } catch (err) {
-      ctx.logger.error('[Character] AI生成描述词失败:', err);
       try {
         res.write(`data: ${JSON.stringify({ error: err.message || 'AI服务异常' })}\n\n`);
       } catch (_) { /* 连接已断开 */ }

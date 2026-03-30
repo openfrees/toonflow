@@ -66,7 +66,6 @@ class PaymentController extends Controller {
 
       ctx.body = ctx.helper.success(result, '订单创建成功');
     } catch (err) {
-      ctx.logger.error('[创建订单] 失败:', err);
       ctx.body = ctx.helper.fail(err.message || '创建订单失败');
     }
   }
@@ -88,7 +87,6 @@ class PaymentController extends Controller {
       const result = await ctx.service.api.payment.queryOrder(orderNo, ctx.state.user.id);
       ctx.body = ctx.helper.success(result);
     } catch (err) {
-      ctx.logger.error('[查询订单] 失败:', err);
       ctx.body = ctx.helper.fail(err.message || '查询失败');
     }
   }
@@ -107,7 +105,6 @@ class PaymentController extends Controller {
       const result = await ctx.service.api.payment.getUserOrders({ userId, page, pageSize });
       ctx.body = ctx.helper.success(result);
     } catch (err) {
-      ctx.logger.error('[购买记录] 查询失败:', err);
       ctx.body = ctx.helper.fail(err.message || '查询购买记录失败');
     }
   }
@@ -122,14 +119,12 @@ class PaymentController extends Controller {
 
     try {
       const notifyData = ctx.request.body;
-      ctx.logger.info('[支付宝回调] 收到通知:', JSON.stringify(notifyData));
 
       const success = await ctx.service.api.payment.handleNotify(notifyData);
 
       /* 支付宝回调响应：成功返回 "success"，失败返回 "fail" */
       ctx.body = success ? 'success' : 'fail';
     } catch (err) {
-      ctx.logger.error('[支付宝回调] 处理异常:', err);
       ctx.body = 'fail';
     }
   }

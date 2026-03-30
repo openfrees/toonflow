@@ -72,8 +72,6 @@ class UploadController extends Controller {
       ctx.body = ctx.helper.success({ url }, '上传成功');
 
     } catch (err) {
-      ctx.logger.error('图片上传失败 [%s]: %s | 临时路径: %s | 目标路径: %s',
-        err.code || 'UNKNOWN', err.message, file?.filepath || 'N/A', targetPath || 'N/A');
       ctx.body = ctx.helper.fail('上传失败，请稍后重试');
     }
   }

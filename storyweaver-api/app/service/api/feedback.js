@@ -46,7 +46,6 @@ class FeedbackService extends Service {
       return { success: true };
 
     } catch (err) {
-      ctx.logger.error('提交反馈失败:', err);
       throw new Error('提交失败，请稍后重试');
     }
   }

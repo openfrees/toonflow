@@ -111,7 +111,6 @@ class NovelAssetController extends Controller {
 
       ctx.body = ctx.helper.success({ avatar: avatarUrl }, '上传成功');
     } catch (err) {
-      ctx.logger.error('[NovelAsset] 角色头像上传失败:', err);
       ctx.body = ctx.helper.fail('上传失败，请稍后重试');
     }
   }
@@ -176,7 +175,6 @@ class NovelAssetController extends Controller {
       await ctx.service.api.novelProject.updateCharacterAssetField(sceneId, scenePayload, { image: imageUrl });
       ctx.body = ctx.helper.success({ image: imageUrl }, '上传成功');
     } catch (err) {
-      ctx.logger.error('[NovelAsset] 场景图上传失败:', err);
       ctx.body = ctx.helper.fail('上传失败，请稍后重试');
     }
   }
@@ -256,7 +254,6 @@ class NovelAssetController extends Controller {
         avatarPrompt,
       }, '头像生成成功');
     } catch (err) {
-      ctx.logger.error('[NovelAsset] AI生成头像失败:', err);
       ctx.body = ctx.helper.fail(`头像生成失败: ${err.message}`);
     }
   }
@@ -339,7 +336,6 @@ class NovelAssetController extends Controller {
         imagePrompt,
       }, '场景图生成成功');
     } catch (err) {
-      ctx.logger.error('[NovelAsset] AI生成场景图失败:', err);
       ctx.body = ctx.helper.fail(`场景图生成失败: ${err.message}`);
     }
   }
@@ -445,7 +441,6 @@ class NovelAssetController extends Controller {
         res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
       }
     } catch (err) {
-      ctx.logger.error('[NovelAsset] AI生成描述词失败:', err);
       try {
         res.write(`data: ${JSON.stringify({ error: err.message || 'AI服务异常' })}\n\n`);
       } catch (_) { /* 连接已断开 */ }
@@ -539,7 +534,6 @@ class NovelAssetController extends Controller {
         res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
       }
     } catch (err) {
-      ctx.logger.error('[NovelAsset] AI生成场景描述词失败:', err);
       try {
         res.write(`data: ${JSON.stringify({ error: err.message || 'AI服务异常' })}\n\n`);
       } catch (_) {}

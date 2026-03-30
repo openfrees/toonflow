@@ -124,7 +124,6 @@ class NovelAgentService extends Service {
         try {
           return await self.invokeSubAgent(agentType, taskDescription, projectId, userId, res, abortSignal);
         } catch (err) {
-          console.error(`[NovelAgent] 子Agent ${agentType} 执行失败:`, err.message);
           self._sseWrite(res, { type: 'subAgentEnd', agent: SUB_AGENT_MAP[agentType]?.name || agentType });
           return `${agentType}执行失败: ${err.message}`;
         }
@@ -536,7 +535,6 @@ ${task}
       status: 'invoking', message: `正在调用 ${agentConfig.name}`,
     });
 
-    ctx.logger.info('[NovelAgent] 调用子Agent: %s, 任务: %s', agentConfig.name, task);
 
     const systemPrompt = loadPrompt(agentConfig.prompt);
 
@@ -603,18 +601,11 @@ ${task}
     /* AI 连接失败的回复不保存到 chat history，避免下次对话时"已分析但未保存"的碎片内容误导 AI */
     if (!isConnectionFailed && fullResponse) {
       await this.saveMessage(projectId, userId, 'assistant', fullResponse, agentConfig.type);
-    } else if (isConnectionFailed) {
-      ctx.logger.warn('[NovelAgent] AI连接失败，子Agent %s 的输出不保存到历史（避免污染上下文）', agentConfig.name);
     }
-
-    ctx.logger.info('[NovelAgent] 子Agent完成: %s, 输出长度: %d, finishReason: %s', agentConfig.name, fullResponse.length, executionResult.finishReason);
 
     /* 积分回调：通知 controller 层本次子Agent的输出字数，由 controller 判断是否中断 */
     if (this._pointCallbacks?.onSubAgentComplete && fullResponse.length > 0) {
-      const budgetResult = await this._pointCallbacks.onSubAgentComplete(fullResponse.length);
-      if (budgetResult && !budgetResult.canContinue) {
-        ctx.logger.info('[NovelAgent] 积分不足，子Agent %s 完成后中断后续调度', agentConfig.name);
-      }
+      await this._pointCallbacks.onSubAgentComplete(fullResponse.length);
     }
 
     return fullResponse || agentConfig.name + '已完成任务';
@@ -654,7 +645,6 @@ ${task}
                 /* 之前已检测到积分不足，现在完成了保底（至少保存了一次），标记可安全中断 */
                 if (budgetExceeded) {
                   budgetExhausted = true;
-                  ctx.logger.info('[NovelAgent] 积分不足但已完成保底保存(%s)，下一轮文本输出时将中断', toolName);
                 }
               }
             },
@@ -671,18 +661,15 @@ ${task}
           return { fullResponse: `${agentConfig.name}启动失败(余额不足): ${errMsg}`, finishReason: 'provider-insufficient-balance', calledTools, budgetExhausted: false };
         }
         if (this._isContextTooLongError(err)) {
-          ctx.logger.warn('[NovelAgent] 上下文超过模型限制，跳过重试直接进入续写: %s', errMsg);
           this._sseWrite(res, { type: 'subAgentStatus', agent: agentConfig.name, status: 'thinking', message: '上下文过长，正在精简后重新分析...' });
           return { fullResponse: '', finishReason: 'context-overflow', calledTools, budgetExhausted: false };
         }
         if (attempt < MAX_AI_RETRY) {
           const delay = (attempt + 1) * 3000;
-          ctx.logger.warn('[NovelAgent] AI API 第%d次调用失败，%dms后重试: %s', attempt + 1, delay, errMsg);
           this._sseWrite(res, { type: 'subAgentStatus', agent: agentConfig.name, status: 'thinking', message: `AI连接异常，正在第${attempt + 2}次尝试...` });
           await new Promise(r => setTimeout(r, delay));
           continue;
         }
-        ctx.logger.error('[NovelAgent] AI API %d次重试全部失败: %s', MAX_AI_RETRY + 1, errMsg);
         return { fullResponse: `${agentConfig.name}启动失败(已重试${MAX_AI_RETRY}次): ${errMsg}`, finishReason: 'ai-api-exhausted', calledTools, budgetExhausted: false };
       }
     }
@@ -697,7 +684,6 @@ ${task}
       for await (const chunk of result.fullStream) {
         /* 已完成保底且积分耗尽，安全中断 */
         if (budgetExhausted) {
-          ctx.logger.info('[NovelAgent] 积分耗尽且已完成保底，中断子Agent %s 流式输出 (已输出%d字)', agentConfig.name, subAgentOutputChars);
           finishReason = 'budget-exhausted';
           break;
         }
@@ -715,8 +701,6 @@ ${task}
             const budget = await pointBudgetCheck(subAgentOutputChars);
             if (!budget.canContinue) {
               budgetExceeded = true;
-              ctx.logger.info('[NovelAgent] 子Agent %s 积分预算不足 - 已输出%d字, 预估消耗=%d, 余额=%d, 已完成保存=%d个',
-                agentConfig.name, subAgentOutputChars, budget.estimatedCost, budget.balance, completedSaveTools.size);
               if (completedSaveTools.size > 0) {
                 /* 已完成至少一次保存，可安全中断 */
                 budgetExhausted = true;
@@ -739,7 +723,6 @@ ${task}
       }
     } catch (err) {
       const errMsg = this._extractErrorMessage(err);
-      ctx.logger.error('[NovelAgent] 子Agent %s 流式读取中断: %s', agentConfig.name, errMsg);
       if (this._isInsufficientBalanceError(err)) {
         finishReason = 'provider-insufficient-balance';
       } else {
@@ -797,7 +780,6 @@ ${task}
 
       /* 积分预算耗尽（已完成保底保存后被中断），停止续写循环 */
       if (result.budgetExhausted) {
-        this.ctx.logger.info('[NovelAgent] 故事师积分预算耗尽，停止续写循环（已完成保底保存）');
         const passResponse = result.fullResponse || '';
         if (passResponse) {
           mergedResponse = mergedResponse ? `${mergedResponse}\n${passResponse}` : passResponse;
@@ -822,7 +804,6 @@ ${task}
 
       /* 上下文超长：立即用精简上下文重建，不算失败次数 */
       if (result.finishReason === 'context-overflow') {
-        this.ctx.logger.warn('[NovelAgent] 上下文超长(第%d轮)，用数据库进度重建精简上下文', retry);
         const latestCoverage = await tools.getStorylineCoverage(projectId);
         coverageBefore = latestCoverage;
         currentContext = this._buildStoryContinuationContext({
@@ -837,7 +818,6 @@ ${task}
 
       if (isApiFailure || isStreamError) {
         consecutiveApiFailures++;
-        this.ctx.logger.warn('[NovelAgent] AI连接失败(第%d/%d轮), reason=%s', retry, maxRetry, result.finishReason);
 
         if (retry < maxRetry) {
           const retryDelay = consecutiveApiFailures * 5000;
@@ -1165,7 +1145,6 @@ ${task}
         await this.saveMessage(projectId, userId, 'assistant', msg, 'main');
         return msg;
       }
-      ctx.logger.error('[NovelAgent] 主Agent流式输出错误: %s', err.message);
       this._sseWrite(res, { type: 'agentText', content: `\n\n[错误] ${err.message}` });
     }
 
@@ -1173,7 +1152,6 @@ ${task}
     const isPointInsufficient = this._pointCallbacks?.isPointInsufficient?.() || false;
     if (!mainStreamFailed && !hasSubAgentToolCall && !isPointInsufficient && this._needsForcedDelegation(userMessage)) {
       const fallback = await this._buildFallbackDelegation(userMessage, projectId);
-      ctx.logger.warn('[NovelAgent] 主Agent未触发子Agent，执行兜底调度: %s', fallback.agentType);
 
       let reviewedByDirector = true;
       if (fallback.agentType === 'AI1') {
@@ -1312,7 +1290,6 @@ ${task}
           + `\n- 📐 本集必须且只能覆盖第${chStart}-${chEnd}章（共${chapterNumbers.length}章），请调用 getChapter({ chapterNumbers: [${chapterNumbers.join(',')}] }) 获取这些章节后合并生成1集大纲`
           + `\n- 📐 chapterRange 必须设为 [${chapterNumbers.join(', ')}]，禁止多取或少取`
           + `\n- 📐 规划说明：${planItem.summary || '无'}`;
-        ctx.logger.info('[NovelAgent] AI2使用规划表分配：第%d集 → 第%d-%d章（共%d章）', nextEpisodeNumber, chStart, chEnd, chapterNumbers.length);
       } else {
         /* 回退：无规划表时使用动态计算（兼容旧项目） */
         const remainingChapters = Math.max(0, totalChapters - coverage.maxChapter);

@@ -144,12 +144,8 @@ class PaymentService extends Service {
         });
 
         payFormHtml = formHtml;
-        ctx.logger.info('[支付宝电脑网站支付] 表单生成成功, 订单号:', orderNo, ', 金额:', amount);
       } catch (err) {
-        ctx.logger.error('[支付宝电脑网站支付] 调用失败 >>>>>>>>>>>>>>>>');
-        ctx.logger.error('[支付宝电脑网站支付] 错误信息:', err.message);
-        ctx.logger.error('[支付宝电脑网站支付] 错误代码:', err.code || '无');
-        ctx.logger.error('[支付宝电脑网站支付] 完整错误:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+        ctx.logger.error('[支付创建] 支付宝表单生成失败: orderNo=%s, message=%s', orderNo, err.message);
         await ctx.model.RechargeOrder.update(
           { remark: `支付宝电脑网站支付失败: ${err.message}` },
           { where: { order_no: orderNo } }
@@ -214,7 +210,8 @@ class PaymentService extends Service {
           };
         }
       } catch (err) {
-        ctx.logger.warn('[支付宝查询] 查询失败:', err.message);
+        ctx.logger.warn('[支付查询] 支付宝订单查询失败: orderNo=%s, message=%s', orderNo, err.message);
+        /* 支付宝查询失败时保持本地订单状态 */
       }
     }
 
@@ -259,22 +256,10 @@ class PaymentService extends Service {
   async handleNotify(notifyData) {
     const { ctx, app } = this;
 
-    ctx.logger.info('[支付宝回调] ========== 开始处理 ==========');
-    ctx.logger.info('[支付宝回调] 原始数据:', JSON.stringify(notifyData));
-    ctx.logger.info('[支付宝回调] 订单号:', notifyData.out_trade_no);
-    ctx.logger.info('[支付宝回调] 支付宝交易号:', notifyData.trade_no);
-    ctx.logger.info('[支付宝回调] 交易状态:', notifyData.trade_status);
-    ctx.logger.info('[支付宝回调] 交易金额:', notifyData.total_amount);
-    ctx.logger.info('[支付宝回调] 买家账号:', notifyData.buyer_logon_id);
-    ctx.logger.info('[支付宝回调] 通知时间:', notifyData.notify_time);
-    ctx.logger.info('[支付宝回调] 通知类型:', notifyData.notify_type);
-
     /* 1. 验证签名 */
     const alipayConfig = app.config.alipay;
     const signValid = alipayLib.checkNotifySign(alipayConfig, notifyData);
-    ctx.logger.info(`[支付宝回调] 验签结果: ${signValid ? '✅ 通过' : '❌ 失败'}`);
     if (!signValid) {
-      ctx.logger.error('[支付宝回调] 验签失败，拒绝处理:', JSON.stringify(notifyData));
       return false;
     }
 
@@ -282,11 +267,8 @@ class PaymentService extends Service {
     const tradeNo = notifyData.trade_no;
     const tradeStatus = notifyData.trade_status;
 
-    ctx.logger.info(`[支付宝回调] 订单:${orderNo} 状态:${tradeStatus}`);
-
     /* 2. 校验 app_id 是否为本应用（防止其他应用的通知误投） */
     if (notifyData.app_id !== alipayConfig.appId) {
-      ctx.logger.error(`[支付宝回调] app_id不匹配: 期望${alipayConfig.appId}, 实际${notifyData.app_id}`);
       return false;
     }
 
@@ -297,43 +279,33 @@ class PaymentService extends Service {
     });
 
     if (!order) {
-      ctx.logger.error('[支付宝回调] 订单不存在:', orderNo);
       return false;
     }
-
-    ctx.logger.info(`[支付宝回调] 本地订单状态: ${order.status}, 类型: ${order.order_type}, 金额: ${order.amount}`);
 
     /* 4. 校验回调金额与本地订单金额是否一致（防止金额篡改） */
     const notifyAmount = parseFloat(notifyData.total_amount);
     const localAmount = parseFloat(order.amount);
     if (Math.abs(notifyAmount - localAmount) > 0.001) {
-      ctx.logger.error(`[支付宝回调] 金额不匹配: 本地${localAmount}, 回调${notifyAmount}, 订单${orderNo}`);
       return false;
     }
 
     /* 5. 已支付的订单不重复处理 */
     if (order.status === 1) {
-      ctx.logger.info('[支付宝回调] 订单已处理，跳过:', orderNo);
       return true;
     }
 
     /* 6. 交易成功 → 执行履约 */
     if (tradeStatus === 'TRADE_SUCCESS' || tradeStatus === 'TRADE_FINISHED') {
-      ctx.logger.info(`[支付宝回调] 交易成功，开始履约: 订单${orderNo}`);
       await this.fulfillOrder(orderNo, tradeNo, notifyData);
-      ctx.logger.info(`[支付宝回调] 履约完成: 订单${orderNo}`);
-      ctx.logger.info('[支付宝回调] ========== 处理完成 ==========');
       return true;
     }
 
     /* 7. 其他状态，记录通知数据 */
-    ctx.logger.info(`[支付宝回调] 非成功状态(${tradeStatus})，仅记录数据: 订单${orderNo}`);
     await ctx.model.RechargeOrder.update(
       { notify_data: JSON.stringify(notifyData) },
       { where: { order_no: orderNo } }
     );
 
-    ctx.logger.info('[支付宝回调] ========== 处理完成 ==========');
     return true;
   }
 
@@ -363,7 +335,6 @@ class PaymentService extends Service {
 
     /* 未更新任何行，说明已被处理（status=1 已支付 或 status=3 已退款） */
     if (affectedCount === 0) {
-      ctx.logger.info('[订单履约] 订单已被处理，跳过:', orderNo);
       return;
     }
 
@@ -383,7 +354,6 @@ class PaymentService extends Service {
       const planCode = detail.planCode;
 
       if (!tierCode || !planCode) {
-        ctx.logger.error(`[订单履约] VIP订单缺少tierCode或planCode: 订单${orderNo}`, detail);
         return;
       }
 
@@ -394,7 +364,6 @@ class PaymentService extends Service {
       });
 
       if (!targetTier) {
-        ctx.logger.error(`[订单履约] VIP等级不存在: ${tierCode}, 订单${orderNo}`);
         return;
       }
 
@@ -410,7 +379,6 @@ class PaymentService extends Service {
       });
 
       if (!user) {
-        ctx.logger.error(`[订单履约] 用户不存在: ${order.user_id}, 订单${orderNo}`);
         return;
       }
 
@@ -428,7 +396,6 @@ class PaymentService extends Service {
       if (sameLevelRenewal) {
         /* 同会员层级续费：在现有到期时间基础上延长 */
         newExpiresAt = dayjs(user.vip_expires_at).add(addDays, 'day').toDate();
-        ctx.logger.info(`[订单履约] VIP同层级续费: 用户${order.user_id}, ${tierCode}, 在原到期时间上+${addDays}天`);
 
       } else if (hasActiveVip && Number(targetMembership.level_rank || 0) > Number(currentMembership.level_rank || 0)) {
         /* 跨等级升级：按月价折算旧等级剩余时长，避免按整天取整丢失小时/分钟 */
@@ -457,21 +424,14 @@ class PaymentService extends Service {
           if (oldMonthPrice && newMonthPrice && Number(newMonthPrice.current_price) > 0) {
             /* 折算公式：剩余时长 × (旧月价 / 新月价)，保留精确到毫秒的权益时长 */
             bonusMs = Math.round(remainMs * Number(oldMonthPrice.current_price) / Number(newMonthPrice.current_price));
-            ctx.logger.info(
-              `[订单履约] VIP升级折算: 旧等级剩余${(remainMs / msPerDay).toFixed(4)}天, 旧月价${oldMonthPrice.current_price}, 新月价${newMonthPrice.current_price}, 折算${(bonusMs / msPerDay).toFixed(4)}天`
-            );
           }
         }
 
         newExpiresAt = now.add(addDays, 'day').add(bonusMs, 'millisecond').toDate();
-        ctx.logger.info(
-          `[订单履约] VIP升级: 用户${order.user_id}, → ${tierCode}, 新购${addDays}天 + 折算${(bonusMs / msPerDay).toFixed(4)}天`
-        );
 
       } else {
         /* 新开通 / 已过期：从今天开始算 */
         newExpiresAt = now.add(addDays, 'day').toDate();
-        ctx.logger.info(`[订单履约] VIP开通: 用户${order.user_id}, ${tierCode}, 从今天起+${addDays}天`);
       }
 
       /* 更新用户VIP状态 */
@@ -482,8 +442,6 @@ class PaymentService extends Service {
         },
         { where: { id: order.user_id } }
       );
-
-      ctx.logger.info(`[订单履约] VIP开通成功: 用户${order.user_id}, 等级=${tierCode}, 到期=${dayjs(newExpiresAt).format('YYYY-MM-DD HH:mm:ss')}, 订单${orderNo}`);
     }
   }
 

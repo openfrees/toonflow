@@ -110,15 +110,15 @@ class ScriptExportController extends Controller {
       });
 
     } catch (e) {
-      console.error('[ScriptExport] 导出失败:', e);
       /* 清理已生成的文件 */
       if (taskStatus.filePath && fs.existsSync(taskStatus.filePath)) {
         try {
           fs.unlinkSync(taskStatus.filePath);
-        } catch (err) {
-          console.error('[ScriptExport] 删除临时文件失败:', err);
+        } catch (cleanupErr) {
+          ctx.logger.warn('[ScriptExport] 导出失败后清理临时文件失败: taskId=%s, message=%s', taskId, cleanupErr.message);
         }
       }
+      ctx.logger.error('[ScriptExport] 导出失败: scriptId=%s, userId=%s, mode=%s, message=%s', scriptId, userId, mode, e.message);
       sendEvent('error', {
         message: e.message || '导出失败',
       });
@@ -161,9 +161,8 @@ class ScriptExportController extends Controller {
     if (task.filePath && fs.existsSync(task.filePath)) {
       try {
         fs.unlinkSync(task.filePath);
-        console.log(`[ScriptExport] 已删除取消的任务文件: ${task.filePath}`);
       } catch (err) {
-        console.error('[ScriptExport] 删除文件失败:', err);
+        ctx.logger.warn('[ScriptExport] 取消导出时删除临时文件失败: taskId=%s, message=%s', taskId, err.message);
       }
     }
 
@@ -207,11 +206,11 @@ class ScriptExportController extends Controller {
       /* 返回后删除临时文件 */
       try {
         fs.unlinkSync(filePath);
-      } catch (e) {
-        console.error('[ScriptExport] 删除临时文件失败:', e);
+      } catch (cleanupErr) {
+        ctx.logger.warn('[ScriptExport] 下载完成后删除临时文件失败: taskId=%s, message=%s', taskId, cleanupErr.message);
       }
     } catch (err) {
-      console.error('[ScriptExport] 下载文件失败:', err);
+      ctx.logger.error('[ScriptExport] 下载失败: taskId=%s, message=%s', taskId, err.message);
       ctx.status = 500;
       ctx.body = '文件下载失败';
     }

@@ -152,7 +152,7 @@ module.exports = {
         fs.unlinkSync(fullPath);
       }
     } catch (err) {
-      this.ctx.logger.warn('[helper.removeUploadedFile] 清理图片失败: %s, err: %s', avatarPath, err.message);
+      this.ctx.logger.warn('[helper.removeUploadedFile] 删除上传文件失败: %s, message=%s', avatarPath, err.message);
     }
   },
 

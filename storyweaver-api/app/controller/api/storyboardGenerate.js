@@ -76,9 +76,6 @@ class StoryboardGenerateController extends Controller {
       episodeId, episode.script_id, userId, style, aspectRatio
     );
 
-    ctx.logger.info('[StoryboardGenerate] ========== 分镜分场景生成开始 ==========');
-    ctx.logger.info('[StoryboardGenerate] 剧集ID: %s, 第%d集, 风格: %s, 比例: %s',
-      episodeId, episode.episode_number, style, aspectRatio);
 
     const aiConfig = await ctx.service.api.modelConfig.getEffectiveAiConfig(userId, 'script_gen');
     if (!aiConfig) {
@@ -118,7 +115,6 @@ class StoryboardGenerateController extends Controller {
         script, episode, style, aspectRatio
       );
 
-      ctx.logger.info('[StoryboardGenerate] 开始调用AI规划场景结构...');
 
       /* 用流式调用消费完整内容（支持 AbortSignal） */
       let structureContent = '';
@@ -133,7 +129,6 @@ class StoryboardGenerateController extends Controller {
       }
 
       if (checkAborted()) {
-        ctx.logger.info('[StoryboardGenerate] ⛔ 场景结构规划阶段被中断');
         throw new Error('ABORTED');
       }
 
@@ -153,8 +148,6 @@ class StoryboardGenerateController extends Controller {
         structureData = JSON.parse(jsonStr);
       } catch (parseErr) {
         /* JSON 解析失败（可能是主动停止导致的不完整 JSON） */
-        ctx.logger.error('[StoryboardGenerate] 场景结构 JSON 解析失败: %s\n内容前500字: %s',
-          parseErr.message, jsonStr.substring(0, 500));
         throw new Error('场景结构解析失败');
       }
 
@@ -162,7 +155,6 @@ class StoryboardGenerateController extends Controller {
         throw new Error('场景结构规划结果为空');
       }
 
-      ctx.logger.info('[StoryboardGenerate] 场景结构规划完成：%d个场景', structureData.scenes.length);
 
       /* 推送场景结构给前端 */
       try { res.write(`data: ${JSON.stringify({ type: 'structure', data: structureData })}\n\n`); } catch (_) {}
@@ -173,7 +165,6 @@ class StoryboardGenerateController extends Controller {
 
       for (let sceneIdx = 0; sceneIdx < structureData.scenes.length; sceneIdx++) {
         if (checkAborted()) {
-          ctx.logger.info('[StoryboardGenerate] ⛔ 场景循环中检测到中断');
           break;
         }
 
@@ -187,8 +178,6 @@ class StoryboardGenerateController extends Controller {
           script, episode, sceneInfo, structureData, prevLastShot, style, aspectRatio, shotStart
         );
 
-        ctx.logger.info('[StoryboardGenerate] 场景%d/%d 开始调用AI（镜头%d起，规划%d个）...',
-          sceneNum, structureData.scenes.length, shotStart, sceneInfo.planned_shots);
 
         /* 解析场景镜头JSON（失败自动重试一次） */
         let sceneResult = null;
@@ -208,7 +197,6 @@ class StoryboardGenerateController extends Controller {
             }
           } catch (streamErr) {
             if (checkAborted()) break;
-            ctx.logger.error('[StoryboardGenerate] 场景%d第%d次AI调用异常: %s', sceneNum, attempt, streamErr.message);
             if (attempt === 2) {
               try { res.write(`data: ${JSON.stringify({ type: 'error', scene: sceneNum, message: `场景${sceneNum}生成失败，已跳过` })}\n\n`); } catch (_) {}
             }
@@ -234,12 +222,8 @@ class StoryboardGenerateController extends Controller {
             if (fb >= 0 && lb > fb) sJson = sJson.substring(fb, lb + 1);
 
             sceneResult = JSON.parse(sJson);
-            ctx.logger.info('[StoryboardGenerate] 场景%d解析成功（第%d次），%d个镜头',
-              sceneNum, attempt, (sceneResult.shots || []).length);
             break;
           } catch (e) {
-            ctx.logger.error('[StoryboardGenerate] 场景%d第%d次解析失败: %s\n前500字: %s',
-              sceneNum, attempt, e.message, content.substring(0, 500));
             if (attempt === 2) {
               try { res.write(`data: ${JSON.stringify({ type: 'error', scene: sceneNum, message: `场景${sceneNum}解析失败，已跳过` })}\n\n`); } catch (_) {}
             }
@@ -278,7 +262,6 @@ class StoryboardGenerateController extends Controller {
         /* SSE推送本场景结果 */
         try { res.write(`data: ${JSON.stringify({ type: 'scene', scene: sceneNum, totalScenes: structureData.scenes.length, scene_data: sceneResult })}\n\n`); } catch (_) {}
 
-        ctx.logger.info('[StoryboardGenerate] ✅ 场景%d保存成功，累计%d个镜头', sceneNum, shotStart - 1);
       }
 
       /* 全部完成，更新状态 */
@@ -294,8 +277,6 @@ class StoryboardGenerateController extends Controller {
         });
         await ctx.service.api.storyboardGenerate.updateStoryboardStatus(storyboardId, 2, finalData);
         saved = true;
-        ctx.logger.info('[StoryboardGenerate] 全部%d个场景完成，共%d个镜头',
-          completedScenes.length, shotStart - 1);
       } else {
         await ctx.service.api.storyboardGenerate.updateStoryboardStatus(storyboardId, 3);
         saved = true;
@@ -304,9 +285,6 @@ class StoryboardGenerateController extends Controller {
     } catch (err) {
       /* 主动停止（ABORTED）或其他错误 */
       const isAborted = err.message === 'ABORTED';
-      if (!isAborted) {
-        ctx.logger.error('[StoryboardGenerate] 生成异常: %s', err.message);
-      }
       if (!saved) {
         if (completedScenes.length > 0) {
           const partialData = JSON.stringify({
@@ -570,9 +548,6 @@ class StoryboardGenerateController extends Controller {
     }
     const totalBatches = batches.length;
 
-    ctx.logger.info('[VideoStoryboard] ========== 视频分镜分批生成开始 ==========');
-    ctx.logger.info('[VideoStoryboard] 剧集ID: %s, 第%d集, 总镜头: %d, 分%d批, 风格: %s, 比例: %s',
-      episodeId, episode.episode_number, allShots.length, totalBatches, style, aspectRatio);
 
     const aiConfig = await ctx.service.api.modelConfig.getEffectiveAiConfig(userId, 'script_gen');
     if (!aiConfig) {
@@ -608,7 +583,6 @@ class StoryboardGenerateController extends Controller {
 
       for (let batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
         if (checkAborted()) {
-          ctx.logger.info('[VideoStoryboard] ⛔ 循环开头检测到中断，停止后续批次');
           break;
         }
 
@@ -627,13 +601,11 @@ class StoryboardGenerateController extends Controller {
           script, episode, batchShots, prevLastShot, style, aspectRatio, batchNum, totalBatches
         );
 
-        ctx.logger.info('[VideoStoryboard] 第%d批开始调用AI（镜头%d-%d）...', batchNum, shotStart, shotEnd);
 
         /* 解析JSON提取shots（失败自动重试一次） */
         let batchResult = [];
         for (let attempt = 1; attempt <= 2; attempt++) {
           if (checkAborted()) {
-            ctx.logger.info('[VideoStoryboard] ⛔ 重试循环中检测到中断，停止当前批次');
             break;
           }
 
@@ -643,7 +615,6 @@ class StoryboardGenerateController extends Controller {
             const stream = await chatStream(aiConfig, messages, { maxTokens: 8192, signal: abortController.signal });
             for await (const chunk of stream) {
               if (checkAborted()) {
-                ctx.logger.info('[VideoStoryboard] ⛔ 流式消费中检测到中断，停止接收');
                 break;
               }
               const delta = chunk.choices[0]?.delta?.content || '';
@@ -651,10 +622,8 @@ class StoryboardGenerateController extends Controller {
             }
           } catch (streamErr) {
             if (checkAborted()) {
-              ctx.logger.info('[VideoStoryboard] ⛔ AI流被中断: %s', streamErr.message);
               break;
             }
-            ctx.logger.error('[VideoStoryboard] 第%d批第%d次AI调用异常: %s', batchNum, attempt, streamErr.message);
             if (attempt === 2) {
               try { res.write(`data: ${JSON.stringify({ type: 'error', batch: batchNum, message: `第${batchNum}批生成失败，已跳过` })}\n\n`); } catch (_) {}
             }
@@ -686,11 +655,8 @@ class StoryboardGenerateController extends Controller {
 
             const parsed = JSON.parse(jsonStr);
             batchResult = parsed.shots || [];
-            ctx.logger.info('[VideoStoryboard] 第%d批解析成功（第%d次），%d个镜头', batchNum, attempt, batchResult.length);
             break; /* 解析成功，跳出重试循环 */
           } catch (e) {
-            ctx.logger.error('[VideoStoryboard] 第%d批第%d次解析失败: %s\n原始内容前500字: %s',
-              batchNum, attempt, e.message, content.substring(0, 500));
             if (attempt === 2) {
               try { res.write(`data: ${JSON.stringify({ type: 'error', batch: batchNum, message: `第${batchNum}批生成失败，已跳过` })}\n\n`); } catch (_) {}
             }
@@ -698,7 +664,6 @@ class StoryboardGenerateController extends Controller {
         }
 
         if (checkAborted()) {
-          ctx.logger.info('[VideoStoryboard] ⛔ 批次完成后检测到中断，停止后续批次');
           break;
         }
         if (batchResult.length === 0) continue;
@@ -720,7 +685,6 @@ class StoryboardGenerateController extends Controller {
           storyboard.id, 1, currentData
         );
 
-        ctx.logger.info('[VideoStoryboard] ✅ 第%d批保存成功，累计%d个镜头', batchNum, completedShots.length);
 
         /* SSE推送本批结果 */
         try { res.write(`data: ${JSON.stringify({ type: 'batch', batch: batchNum, totalBatches, shots: batchResult })}\n\n`); } catch (_) {}
@@ -740,14 +704,13 @@ class StoryboardGenerateController extends Controller {
           storyboard.id, 2, finalData
         );
         saved = true;
-        ctx.logger.info('[VideoStoryboard] 全部%d批完成，共%d个镜头', totalBatches, completedShots.length);
       } else {
         await ctx.service.api.storyboardGenerate.updateVideoStoryboardStatus(storyboard.id, 3);
         saved = true;
       }
 
     } catch (err) {
-      ctx.logger.error('[VideoStoryboard] 生成异常: %s', err.message);
+      const isAborted = err.message === 'ABORTED';
       if (!saved) {
         if (completedShots.length > 0) {
           const partialData = JSON.stringify({
@@ -760,7 +723,9 @@ class StoryboardGenerateController extends Controller {
         }
         saved = true;
       }
-      try { res.write(`data: ${JSON.stringify({ type: 'error', message: '视频分镜生成失败，请重试' })}\n\n`); } catch (_) {}
+      if (!isAborted) {
+        try { res.write(`data: ${JSON.stringify({ type: 'error', message: '视频分镜生成失败，请重试' })}\n\n`); } catch (_) {}
+      }
     } finally {
       activeVideoGenerations.delete(genKey);
       /* 尝试推送结束标记（客户端可能已断开） */

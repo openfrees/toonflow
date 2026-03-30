@@ -205,7 +205,6 @@ class ScriptSceneController extends Controller {
         scenes,
       });
     } catch (err) {
-      ctx.logger.error('[ScriptScene] 场景抽离失败:', err);
       writeEvent({
         type: 'error',
         message: err.message || '场景抽离失败，请稍后重试',
@@ -275,7 +274,6 @@ class ScriptSceneController extends Controller {
 
       ctx.body = ctx.helper.success({ image: imagePath }, '上传成功');
     } catch (err) {
-      ctx.logger.error('[ScriptScene] 场景图上传失败:', err);
       ctx.body = ctx.helper.fail('上传失败，请稍后重试');
     }
   }
@@ -382,7 +380,6 @@ class ScriptSceneController extends Controller {
       }
       res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
     } catch (err) {
-      ctx.logger.error('[ScriptScene] AI生成场景描述词失败:', err);
       try {
         res.write(`data: ${JSON.stringify({ error: err.message || 'AI服务异常' })}\n\n`);
       } catch (_) {}
@@ -463,7 +460,6 @@ class ScriptSceneController extends Controller {
         imagePrompt,
       }, '场景图生成成功');
     } catch (err) {
-      ctx.logger.error('[ScriptScene] AI生成场景图失败:', err);
       ctx.body = ctx.helper.fail(`场景图生成失败: ${err.message}`);
     }
   }

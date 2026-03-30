@@ -14,7 +14,6 @@ module.exports = app => {
   if (isLocal) {
     const MemoryCache = require('./app/lib/cache');
     app.redis = new MemoryCache();
-    app.logger.info('[Init] localhost 模式 → 使用内存缓存替代 Redis');
   }
 
   app.ready(async () => {
@@ -28,16 +27,14 @@ module.exports = app => {
       /* Sequelize sync 自动建表（表已存在则跳过） */
       try {
         await app.model.sync({ alter: false });
-        app.logger.info('[Init] SQLite 建表完成');
       } catch (err) {
-        app.logger.error('[Init] SQLite 建表失败:', err);
+        app.logger.error('[Init] SQLite 建表失败: %s', err.message);
+        /* 建表失败不阻断启动 */
       }
 
       /* 写入种子数据（各表为空时才写入，不影响已有数据） */
       await _seedData(app);
     }
-
-    app.logger.info('[Init] 应用启动完成 (deployMode=%s)', app.config.deployMode);
   });
 };
 
@@ -61,10 +58,10 @@ async function _seedData(app) {
         real_name: '管理员',
         status: 1,
       });
-      app.logger.info('[Seed] 已创建默认管理员，请查阅文档获取初始密码');
     }
   } catch (err) {
-    app.logger.warn('[Seed] 管理员初始化失败:', err.message);
+    app.logger.error('[Seed] 默认管理员初始化失败: %s', err.message);
+    /* 种子数据失败不阻断启动 */
   }
 
   /* 题材类型（genre） */
@@ -74,10 +71,10 @@ async function _seedData(app) {
       await app.model.Genre.bulkCreate(
         genres.map(g => ({ ...g, is_enabled: 1 }))
       );
-      app.logger.info('[Seed] 已写入 %d 条题材类型', genres.length);
     }
   } catch (err) {
-    app.logger.warn('[Seed] 题材类型初始化失败:', err.message);
+    app.logger.error('[Seed] 题材类型初始化失败: %s', err.message);
+    /* 种子数据失败不阻断启动 */
   }
 
   /* 系统配置（system_config） */
@@ -85,9 +82,9 @@ async function _seedData(app) {
     const configCount = await app.model.SystemConfig.count();
     if (configCount === 0) {
       await app.model.SystemConfig.bulkCreate(systemConfigs);
-      app.logger.info('[Seed] 已写入 %d 条系统配置', systemConfigs.length);
     }
   } catch (err) {
-    app.logger.warn('[Seed] 系统配置初始化失败:', err.message);
+    app.logger.error('[Seed] 系统配置初始化失败: %s', err.message);
+    /* 种子数据失败不阻断启动 */
   }
 }

@@ -102,7 +102,6 @@ class NovelScriptGenerateController extends Controller {
       ctx.req.on('close', () => {
         if (!saved) {
           clientAborted = true;
-          ctx.logger.info('[NovelScriptGenerate] 客户端断开，中断生成');
           abortController.abort();
         }
       });
@@ -117,7 +116,6 @@ class NovelScriptGenerateController extends Controller {
 
         const safeDelta = guard.push(delta);
         if (guard.blocked()) {
-          ctx.logger.warn('[NovelScriptGenerate] 检测到prompt泄露，已拦截');
           fullContent = BLOCKED_REPLY;
           res.write(`data: ${JSON.stringify({ content: BLOCKED_REPLY })}\n\n`);
           abortController.abort();
@@ -146,10 +144,7 @@ class NovelScriptGenerateController extends Controller {
         await ctx.service.api.novelScriptGenerate.updateScriptStatus(episodeId, 3);
       }
     } catch (err) {
-      if (clientAborted || err.name === 'APIUserAbortError' || err.message?.includes('aborted')) {
-        ctx.logger.info('[NovelScriptGenerate] 生成被用户停止，保存部分内容');
-      } else {
-        ctx.logger.error('[NovelScriptGenerate] 生成异常:', err);
+      if (!clientAborted && err.name !== 'APIUserAbortError' && !err.message?.includes('aborted')) {
         try {
           res.write(`data: ${JSON.stringify({ error: err.message || 'AI服务异常' })}\n\n`);
         } catch (_) {}
@@ -161,7 +156,6 @@ class NovelScriptGenerateController extends Controller {
         try {
           await ctx.service.api.novelScriptGenerate.updateScriptStatus(episodeId, 2, fullContent);
         } catch (saveErr) {
-          ctx.logger.error('[NovelScriptGenerate] 兜底保存失败:', saveErr);
           try {
             await ctx.service.api.novelScriptGenerate.updateScriptStatus(episodeId, 3);
           } catch (_) {}

@@ -230,7 +230,6 @@ class ModelConfigService extends Service {
     try {
       apiKey = ctx.helper.decryptAES(model.api_key);
     } catch (err) {
-      ctx.logger.error('[ModelConfig] API Key 解密失败, modelId=%d: %s', model.id, err.message);
       return null;
     }
 

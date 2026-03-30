@@ -22,7 +22,6 @@ class VipExpireCheck extends Subscription {
     const { ctx } = this;
     const { Op } = ctx.app.Sequelize;
 
-    ctx.logger.info('[VIP过期检测] ========== 开始执行 ==========');
 
     try {
       /* 查询所有已过期的VIP用户（vip_tier_id 不为空 且 vip_expires_at < 当前时间） */
@@ -37,16 +36,13 @@ class VipExpireCheck extends Subscription {
       });
 
       if (expiredUsers.length === 0) {
-        ctx.logger.info('[VIP过期检测] 无过期用户，跳过');
-        ctx.logger.info('[VIP过期检测] ========== 执行完毕 ==========');
         return;
       }
 
-      ctx.logger.info(`[VIP过期检测] 发现 ${expiredUsers.length} 个过期用户`);
 
       /* 批量清除过期用户的VIP状态 */
       const expiredIds = expiredUsers.map(u => u.id);
-      const [affectedCount] = await ctx.model.User.update(
+      await ctx.model.User.update(
         {
           vip_tier_id: null,
           vip_expires_at: null,
@@ -56,18 +52,11 @@ class VipExpireCheck extends Subscription {
           where: { id: { [Op.in]: expiredIds } },
         }
       );
-
-      /* 记录日志 */
-      for (const user of expiredUsers) {
-        ctx.logger.info(`[VIP过期检测] 已清除: 用户${user.id}(${user.nickname}), 原等级ID=${user.vip_tier_id}, 原到期=${user.vip_expires_at}`);
-      }
-
-      ctx.logger.info(`[VIP过期检测] 共清除 ${affectedCount} 个用户的VIP状态`);
     } catch (err) {
-      ctx.logger.error('[VIP过期检测] 执行异常:', err);
+      ctx.logger.error('[VIP过期检测] 执行失败: %s', err.message);
+      /* 定时任务失败不抛到进程外 */
     }
 
-    ctx.logger.info('[VIP过期检测] ========== 执行完毕 ==========');
   }
 }
 

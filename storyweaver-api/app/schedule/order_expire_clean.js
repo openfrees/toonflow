@@ -23,7 +23,7 @@ class OrderExpireClean extends Subscription {
 
     try {
       /* 批量将已过期的待支付订单标记为已过期 */
-      const [affectedCount] = await ctx.model.RechargeOrder.update(
+      await ctx.model.RechargeOrder.update(
         { status: 2 },
         {
           where: {
@@ -32,12 +32,9 @@ class OrderExpireClean extends Subscription {
           },
         }
       );
-
-      if (affectedCount > 0) {
-        ctx.logger.info(`[订单过期清理] 已标记 ${affectedCount} 个过期订单`);
-      }
     } catch (err) {
-      ctx.logger.error('[订单过期清理] 执行异常:', err);
+      ctx.logger.error('[订单过期清理] 执行失败: %s', err.message);
+      /* 清理失败不阻断调度 */
     }
   }
 }
