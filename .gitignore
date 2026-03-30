@@ -20,6 +20,7 @@ temp/
 storyweaver-api/.env
 storyweaver-api/.env.production
 storyweaver-web/.env.production
+storyweaver-api/app/public/uploads/
 
 # 敏感配置（含密钥，禁止提交）
 storyweaver-api/config/config.local.js
