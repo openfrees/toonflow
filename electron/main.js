@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const { app, BrowserWindow, dialog, Menu, shell, nativeImage } = require('electron');
-const { fork, spawn } = require('child_process');
+const { fork, spawn, execSync } = require('child_process');
 const path = require('path');
 const http = require('http');
 
@@ -14,6 +14,13 @@ const FRONTEND_DEV_PORT = 7005;
 const isDev = !app.isPackaged;
 const APP_DISPLAY_NAME = '知剧AI';
 const APP_ICON_PATH = path.join(__dirname, 'icons', 'icon.png');
+
+/* 用户数据目录（日志等写到这里，不放 .app 包内）
+ * macOS: ~/Library/Application Support/zhijuai-desktop/
+ * Windows: C:\Users\<user>\AppData\Roaming\zhijuai-desktop\ */
+const USER_DATA_DIR = app.getPath('userData');
+const LOG_DIR = isDev ? null : path.join(USER_DATA_DIR, 'logs');
+const PID_FILE = path.join(USER_DATA_DIR, '.server.pid');
 
 app.setName(APP_DISPLAY_NAME);
 
@@ -121,9 +128,12 @@ function startServer() {
         PORT: String(SERVER_PORT),
         EGG_SERVER_ENV: 'local',
         EGG_HOME: SERVER_DIR,
+        ...(LOG_DIR ? { ZHIJUAI_LOG_DIR: LOG_DIR } : {}),
       },
       silent: true,
     });
+
+    try { fs.writeFileSync(PID_FILE, String(serverProcess.pid)); } catch {}
 
     serverProcess.stdout?.on('data', (data) => {
       console.log(`[Server] ${data.toString().trim()}`);
@@ -367,33 +377,79 @@ function setupMenu() {
 }
 
 /* ========================================
- * 停止所有子进程
+ * 强制杀掉进程树（同步执行，确保杀干净）
+ * ======================================== */
+function forceKillProcessTree(pid) {
+  if (!pid) return;
+  try {
+    if (process.platform === 'win32') {
+      execSync(`taskkill /PID ${pid} /T /F`, { stdio: 'ignore' });
+    } else {
+      execSync(`pkill -9 -P ${pid} 2>/dev/null; kill -9 ${pid} 2>/dev/null`, { stdio: 'ignore' });
+    }
+  } catch {}
+}
+
+/* 按端口杀进程（核弹级兜底，确保端口一定释放） */
+function killPort(port) {
+  try {
+    if (process.platform === 'win32') {
+      const out = execSync(`netstat -ano | findstr :${port} | findstr LISTENING`, { encoding: 'utf8' });
+      const pids = [...new Set(out.split('\n').map(l => l.trim().split(/\s+/).pop()).filter(p => /^\d+$/.test(p)))];
+      pids.forEach(p => { try { execSync(`taskkill /PID ${p} /F`, { stdio: 'ignore' }); } catch {} });
+    } else {
+      execSync(`lsof -ti:${port} | xargs kill -9 2>/dev/null`, { stdio: 'ignore' });
+    }
+  } catch {}
+}
+
+/* ========================================
+ * 清理上次残留的后端进程（防止拖到回收站等异常退出后进程不死）
+ * ======================================== */
+function cleanupOrphanedProcesses() {
+  try {
+    if (fs.existsSync(PID_FILE)) {
+      const oldPid = parseInt(fs.readFileSync(PID_FILE, 'utf8').trim(), 10);
+      if (oldPid) {
+        console.log(`[Cleanup] 发现残留进程 PID=${oldPid}，正在清理...`);
+        forceKillProcessTree(oldPid);
+      }
+    }
+  } catch {}
+  try { fs.unlinkSync(PID_FILE); } catch {}
+  killPort(SERVER_PORT);
+}
+
+/* ========================================
+ * 停止所有子进程（同步强杀，不给残留机会）
  * ======================================== */
 function stopAllServices() {
   stopSplashProgress();
 
   if (serverProcess) {
-    console.log('[Server] 正在停止...');
-    serverProcess.kill('SIGTERM');
+    console.log(`[Server] 正在停止 PID=${serverProcess.pid}...`);
+    forceKillProcessTree(serverProcess.pid);
     serverProcess = null;
   }
 
+  try { fs.unlinkSync(PID_FILE); } catch {}
+
   if (frontendProcess) {
-    console.log('[Frontend] 正在停止...');
-    /* spawn 创建的进程树需要用 SIGTERM 杀掉整个进程组 */
-    try {
-      process.kill(-frontendProcess.pid, 'SIGTERM');
-    } catch {
-      frontendProcess.kill('SIGTERM');
-    }
+    console.log(`[Frontend] 正在停止 PID=${frontendProcess.pid}...`);
+    forceKillProcessTree(frontendProcess.pid);
     frontendProcess = null;
   }
+
+  killPort(SERVER_PORT);
+  if (isDev) killPort(FRONTEND_DEV_PORT);
 }
 
 /* ========================================
  * 应用生命周期
  * ======================================== */
 app.on('ready', async () => {
+  cleanupOrphanedProcesses();
+
   if (process.platform === 'darwin' && app.dock && fs.existsSync(APP_ICON_PATH)) {
     app.dock.setIcon(nativeImage.createFromPath(APP_ICON_PATH));
   }
@@ -441,6 +497,11 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   stopAllServices();
+});
+
+app.on('will-quit', () => {
+  killPort(SERVER_PORT);
+  if (isDev) killPort(FRONTEND_DEV_PORT);
 });
 
 app.on('activate', () => {

@@ -158,10 +158,23 @@ module.exports = appInfo => {
 
   /* ========================================
    * 日志配置
+   * localhost 模式只记录 WARN 级别以上，大幅减少日志体积
+   * Electron 打包后日志输出到用户数据目录，避免写在 .app 包内
    * ======================================== */
   config.logger = {
-    consoleLevel: 'DEBUG',
+    level: isLocal ? 'WARN' : 'INFO',
+    consoleLevel: isLocal ? 'WARN' : 'INFO',
   };
+
+  if (process.env.ZHIJUAI_LOG_DIR) {
+    config.logger.dir = process.env.ZHIJUAI_LOG_DIR;
+  }
+
+  if (isLocal) {
+    config.logrotator = {
+      maxDays: 3,
+    };
+  }
 
   /* ========================================
    * Hashids 配置（ID混淆，防止自增ID暴露）
