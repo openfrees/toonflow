@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const net = require('net');
 const { app, BrowserWindow, dialog, Menu, shell, nativeImage } = require('electron');
 const { fork, spawn, execSync } = require('child_process');
 const path = require('path');
@@ -110,6 +111,149 @@ function stopSplashProgress() {
     clearInterval(splashProgressTimer);
     splashProgressTimer = null;
   }
+}
+
+/* ========================================
+ * 端口检测与清理（核心增强）
+ * ======================================== */
+
+/**
+ * 检测端口是否被占用（用 net 模块精准检测，不依赖系统命令）
+ */
+function isPortInUse(port) {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+    server.once('error', (err) => {
+      server.close();
+      resolve(err.code === 'EADDRINUSE');
+    });
+    server.once('listening', () => {
+      server.close();
+      resolve(false);
+    });
+    server.listen(port, '127.0.0.1');
+  });
+}
+
+/**
+ * 延迟指定毫秒
+ */
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * 按端口杀进程 — 多策略杀进程链，确保端口一定释放
+ * macOS: lsof 详细查找 → 杀进程树 → 按进程名匹配兜底
+ * Windows: netstat 查找 → taskkill 强制终止
+ */
+function killPort(port) {
+  console.log(`[PortCleanup] 正在清理端口 ${port} 上的残留进程...`);
+
+  if (process.platform === 'win32') {
+    killPortWindows(port);
+  } else {
+    killPortUnix(port);
+  }
+}
+
+function killPortWindows(port) {
+  try {
+    const out = execSync(
+      `netstat -ano | findstr :${port} | findstr LISTENING`,
+      { encoding: 'utf8', timeout: 5000 }
+    );
+    const pids = [...new Set(
+      out.split('\n')
+        .map(l => l.trim().split(/\s+/).pop())
+        .filter(p => /^\d+$/.test(p) && p !== '0')
+    )];
+    pids.forEach(pid => {
+      console.log(`[PortCleanup] Windows 杀进程 PID=${pid}`);
+      try { execSync(`taskkill /PID ${pid} /T /F`, { stdio: 'ignore', timeout: 5000 }); } catch {}
+    });
+  } catch {}
+}
+
+function killPortUnix(port) {
+  /* 策略1: lsof 精确查找监听该端口的所有进程，逐个杀进程树 */
+  try {
+    const out = execSync(
+      `lsof -nP -iTCP:${port} -sTCP:LISTEN -t 2>/dev/null`,
+      { encoding: 'utf8', timeout: 5000 }
+    );
+    const pids = out.trim().split('\n').filter(p => /^\d+$/.test(p.trim()));
+    pids.forEach(pid => {
+      pid = pid.trim();
+      console.log(`[PortCleanup] lsof 发现 PID=${pid}，杀进程树...`);
+      try { execSync(`pkill -9 -P ${pid} 2>/dev/null`, { stdio: 'ignore', timeout: 3000 }); } catch {}
+      try { execSync(`kill -9 ${pid} 2>/dev/null`, { stdio: 'ignore', timeout: 3000 }); } catch {}
+    });
+  } catch {}
+
+  /* 策略2: 用 lsof -ti 的简写方式兜底（和策略1可能有重叠，但无害） */
+  try {
+    execSync(`lsof -ti:${port} | xargs kill -9 2>/dev/null`, { stdio: 'ignore', timeout: 5000 });
+  } catch {}
+
+  /* 策略3: 按 cwd 或 cmdline 搜索 node 进程（针对 Egg.js master 进程杀不死的场景）
+   * Egg.js master 可能不直接监听端口，但它的子进程监听，杀子进程后 master 会重拉
+   * 需要找到 master 一起杀掉 */
+  try {
+    const serverDir = isDev
+      ? path.join(__dirname, '..', 'storyweaver-api')
+      : path.join(process.resourcesPath, 'server');
+    const out = execSync(
+      `ps -eo pid,command | grep -E "node.*launcher\\.js|egg-cluster|eggjs" | grep -v grep`,
+      { encoding: 'utf8', timeout: 5000 }
+    );
+    const lines = out.trim().split('\n').filter(Boolean);
+    lines.forEach(line => {
+      const match = line.trim().match(/^(\d+)/);
+      if (match) {
+        const pid = match[1];
+        console.log(`[PortCleanup] 按进程名找到疑似残留 PID=${pid}: ${line.trim().substring(0, 80)}`);
+        try { execSync(`pkill -9 -P ${pid} 2>/dev/null`, { stdio: 'ignore', timeout: 3000 }); } catch {}
+        try { execSync(`kill -9 ${pid} 2>/dev/null`, { stdio: 'ignore', timeout: 3000 }); } catch {}
+      }
+    });
+  } catch {}
+
+  /* 策略4: 如果有 fuser 命令，直接让它杀（某些 Linux 发行版有，macOS 不一定有） */
+  try {
+    execSync(`fuser -k ${port}/tcp 2>/dev/null`, { stdio: 'ignore', timeout: 5000 });
+  } catch {}
+}
+
+/**
+ * 确保端口可用 — 检测→杀→等待→验证→重试，最多 maxRetries 轮
+ * 返回 true 表示端口已释放，false 表示仍被占用
+ */
+async function ensurePortFree(port, maxRetries = 5) {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const inUse = await isPortInUse(port);
+    if (!inUse) {
+      if (attempt > 0) {
+        console.log(`[PortCleanup] 端口 ${port} 已成功释放（第 ${attempt} 轮清理后）`);
+      } else {
+        console.log(`[PortCleanup] 端口 ${port} 空闲，无需清理`);
+      }
+      return true;
+    }
+
+    if (attempt === maxRetries) {
+      console.error(`[PortCleanup] 端口 ${port} 经过 ${maxRetries} 轮清理仍被占用！`);
+      return false;
+    }
+
+    console.log(`[PortCleanup] 端口 ${port} 被占用，第 ${attempt + 1}/${maxRetries} 轮清理...`);
+    killPort(port);
+
+    /* 每轮等待递增：500ms → 800ms → 1200ms → 1800ms → 2500ms，给系统更多释放时间 */
+    const waitMs = 500 + attempt * 300 + attempt * attempt * 100;
+    await sleep(waitMs);
+  }
+  return false;
 }
 
 /* ========================================
@@ -390,23 +534,11 @@ function forceKillProcessTree(pid) {
   } catch {}
 }
 
-/* 按端口杀进程（核弹级兜底，确保端口一定释放） */
-function killPort(port) {
-  try {
-    if (process.platform === 'win32') {
-      const out = execSync(`netstat -ano | findstr :${port} | findstr LISTENING`, { encoding: 'utf8' });
-      const pids = [...new Set(out.split('\n').map(l => l.trim().split(/\s+/).pop()).filter(p => /^\d+$/.test(p)))];
-      pids.forEach(p => { try { execSync(`taskkill /PID ${p} /F`, { stdio: 'ignore' }); } catch {} });
-    } else {
-      execSync(`lsof -ti:${port} | xargs kill -9 2>/dev/null`, { stdio: 'ignore' });
-    }
-  } catch {}
-}
-
 /* ========================================
- * 清理上次残留的后端进程（防止拖到回收站等异常退出后进程不死）
+ * 清理上次残留的后端进程（异步，确保端口真正释放后再返回）
  * ======================================== */
-function cleanupOrphanedProcesses() {
+async function cleanupOrphanedProcesses() {
+  /* 第一步：按 PID 文件清理已知残留进程 */
   try {
     if (fs.existsSync(PID_FILE)) {
       const oldPid = parseInt(fs.readFileSync(PID_FILE, 'utf8').trim(), 10);
@@ -417,7 +549,17 @@ function cleanupOrphanedProcesses() {
     }
   } catch {}
   try { fs.unlinkSync(PID_FILE); } catch {}
-  killPort(SERVER_PORT);
+
+  /* 第二步：确保两个端口都释放（无论开发/打包模式，都清理 7005 和 7006，防止交叉残留） */
+  const serverPortFree = await ensurePortFree(SERVER_PORT);
+  if (!serverPortFree) {
+    throw new Error(`端口 ${SERVER_PORT} 被占用且无法释放，请手动检查或重启电脑后重试`);
+  }
+
+  const frontendPortFree = await ensurePortFree(FRONTEND_DEV_PORT);
+  if (!frontendPortFree) {
+    throw new Error(`端口 ${FRONTEND_DEV_PORT} 被占用且无法释放，请手动检查或重启电脑后重试`);
+  }
 }
 
 /* ========================================
@@ -448,8 +590,6 @@ function stopAllServices() {
  * 应用生命周期
  * ======================================== */
 app.on('ready', async () => {
-  cleanupOrphanedProcesses();
-
   if (process.platform === 'darwin' && app.dock && fs.existsSync(APP_ICON_PATH)) {
     app.dock.setIcon(nativeImage.createFromPath(APP_ICON_PATH));
   }
@@ -457,6 +597,11 @@ app.on('ready', async () => {
   createSplashWindow();
 
   try {
+    /* 先清理残留进程，确保端口可用（异步等待，确保杀干净） */
+    updateSplashProgress(2, '正在检测端口占用...');
+    await cleanupOrphanedProcesses();
+    updateSplashProgress(5, '端口已就绪');
+
     if (isDev) {
       /* 开发模式：同时启动后端 + 前端 dev server */
       updateSplashProgress(5, '正在启动后端服务...');
