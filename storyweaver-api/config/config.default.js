@@ -210,7 +210,8 @@ module.exports = appInfo => {
   config.cluster = {
     listen: {
       port: 7006,
-      hostname: '127.0.0.1',
+      /* Docker 场景下通过环境变量改成 0.0.0.0，宿主机才能访问到容器端口 */
+      hostname: process.env.LISTEN_HOST || '127.0.0.1',
     },
   };
 

@@ -1,45 +1,19 @@
-<p>
-  <a href="https://github.com/openfrees/toonflow.git">
-    <img src="https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white" alt="GitHub" />
-  </a>
-  &nbsp;|&nbsp;
-  <a href="https://gitee.com/open_free/toonflow.git">
-    <img src="https://img.shields.io/badge/Gitee-C71D23?style=flat-square&logo=gitee&logoColor=white" alt="Gitee" />
-  </a>
-  &nbsp;|&nbsp;
-  <a href="https://www.zhijuu.com">
-    <img src="https://img.shields.io/badge/官网-www.zhijuu.com-blue?style=flat-square&logo=googlechrome&logoColor=white" alt="官网" />
-  </a>
-</p>
+ |   | 
 
-<p align="center">
-  <strong>中文</strong> | 
-  <a href="./docs/README.en.md">English</a>
-</p>
+**中文** | [English](./docs/README.en.md)
 
-<div align="center">
-<a href="https://www.zhijuu.com">
-  <img src="https://www.zhijuu.com/brand-mark-main.svg" alt="知剧AI Logo" height="120"/>
-</a>
+
 
 # 知剧AI
 
-  <p align="center">
-    <b>
-      AI 短剧创作平台
-      <br />
-      小说秒转剧本，剧本延展分镜
-      <br />
-      前后端与桌面端一体化交付 🔥
-    </b>
-  </p>
-  🚀 **一站式短剧工程**：AI 剧本生成 × 小说转剧本 × 分镜辅助 × 管理后台 × 桌面端封装，全流程覆盖！
+**AI 短剧创作平台 **  
+**小说秒转剧本，剧本延展分镜 **  
+**前后端与桌面端一体化交付 🔥**
 
-  <br />
-  <a href="https://www.zhijuu.com">
-    <img src="https://img.shields.io/badge/官网-www.zhijuu.com-blue?style=for-the-badge&logo=googlechrome&logoColor=white" alt="访问官网" />
-  </a>
-</div>
+ 🚀 **一站式短剧工程**：AI 剧本生成 × 小说转剧本 × 分镜辅助 × 管理后台 × 桌面端封装，全流程覆盖！
+
+  
+
 
 ---
 
@@ -48,13 +22,13 @@
 知剧AI 是一个面向短剧创作与管理的源码开放项目，提供完整的前端站点、后端 API、管理后台和 Electron 桌面端封装，适合个人学习、研究、非商业本地部署和功能体验。
 
 - ✅ **AI 剧本生成**  
-   支持从创意到结构化剧本的生成与编辑，帮助快速搭建短剧内容骨架。
+ 支持从创意到结构化剧本的生成与编辑，帮助快速搭建短剧内容骨架。
 - ✅ **小说转剧本**  
-   支持小说项目、章节、剧情线到剧本的转换流程，适合影视改编类创作场景。
+ 支持小说项目、章节、剧情线到剧本的转换流程，适合影视改编类创作场景。
 - ✅ **分镜辅助**  
-   围绕剧本场景生成分镜、封面和画面素材，提升后续视频制作效率。
+ 围绕剧本场景生成分镜、封面和画面素材，提升后续视频制作效率。
 - ✅ **桌面端封装**  
-   支持 Electron 联调与安装包构建，可输出 Windows / macOS 桌面客户端。
+ 支持 Electron 联调与安装包构建，可输出 Windows / macOS 桌面客户端。
 
 ---
 
@@ -73,17 +47,20 @@
 
 ## 📺 视频教程
 
-<!-- 待补充：视频教程链接、封面图、二维码 -->
-<!-- 例如 B 站、抖音、公众号教程，有了之后按下面格式补上 -->
 
-<!-- https://www.bilibili.com/video/待补充 -->
-<!-- [![知剧AI 快速上手教程](./docs/videoCover.png)](https://www.bilibili.com/video/待补充) -->
+
+
+
+
+
+
 
 **知剧AI 快速上手教程**
 👉 [点击观看（待补充）](#)
 
-<!-- 📱 手机微信扫码观看 -->
-<!-- <img src="./docs/videoQR.png" alt="微信扫码观看" width="150"/> -->
+
+
+
 
 ---
 
@@ -100,11 +77,13 @@
 
 ### 1. 下载与安装
 
-| 操作系统 | GitHub 下载                                                  | 网盘下载                                    | 说明           |
-| :------: | :----------------------------------------------------------- | :---------------------------------------------- | :------------- |
-| Windows  | [Release](https://github.com/openfrees/toonflow/releases) | [网盘下载（待补充）](#) | 官方发布安装包 |
-|  macOS   | [Release](https://github.com/openfrees/toonflow/releases) | [网盘下载（待补充）](#) | 官方发布安装包 |
-|  Linux   | [Release](https://github.com/openfrees/toonflow/releases) | [网盘下载（待补充）](#) | 待提供         |
+
+| 操作系统    | GitHub 下载                                                 | 网盘下载           | 说明      |
+| ------- | --------------------------------------------------------- | -------------- | ------- |
+| Windows | [Release](https://github.com/openfrees/toonflow/releases) | [网盘下载（待补充）](#) | 官方发布安装包 |
+| macOS   | [Release](https://github.com/openfrees/toonflow/releases) | [网盘下载（待补充）](#) | 官方发布安装包 |
+| Linux   | [Release](https://github.com/openfrees/toonflow/releases) | [网盘下载（待补充）](#) | 待提供     |
+
 
 > 当前仓库已支持 Windows 和 macOS 打包。Release 页地址、网盘地址请后续补上。
 
@@ -123,75 +102,106 @@
 - 已安装 [Docker](https://docs.docker.com/get-docker/)（版本 20.10+）
 - 已安装 [Docker Compose](https://docs.docker.com/compose/install/)（版本 2.0+）
 
-### 方式一：在线部署（推荐）
+### 本地 Docker 一键运行
 
-<!-- 待补充：当前仓库尚未内置 docker-compose.yml，以下为推荐的部署结构 -->
-<!-- 如果你后续补了正式 docker-compose.yml，直接把这段替换成实际命令即可 -->
+本仓库已经内置根目录 `Dockerfile` 和 `docker-compose.yml`，可直接在本机通过 Docker 跑起前后端。
 
-```shell
-# 仓库地址待补充
-git clone https://github.com/openfrees/toonflow.git
-```
+当前 Docker 方案特点：
 
-推荐容器拆分方式：
+- 采用 `localhost` 模式启动后端，使用 SQLite 持久化数据
+- 前端在镜像构建阶段静态生成，并拷贝到 `storyweaver-api/web`
+- 前台页面、后端 API、管理后台统一走同一个地址
 
-- 前端容器：基于 `storyweaver-web` 执行 `npm install` 和 `npm run generate:local`，将生成后的静态资源交给 Nginx
-- 后端容器：基于 `storyweaver-api` 执行 `npm install` 并启动服务
-- 数据卷：将 SQLite 数据、日志目录单独做 volume 挂载，避免容器删除后数据丢失
+### 运行前说明
 
-### 方式二：本地构建
-
-使用本地已有的源码直接构建，适合开发者或已克隆仓库的用户：
+`docker-compose.yml` 位于项目根目录，所以命令必须在**仓库根目录**执行：
 
 ```shell
-# 先克隆项目（如已有则跳过）
-git clone https://github.com/openfrees/toonflow.git
-
-# 前端生成本地静态资源
-cd storyweaver-web
-npm install
-npm run generate:local
-
-# 后端安装依赖
-cd ../storyweaver-api
-npm install
+cd /你的项目根目录
 ```
 
-### 服务端口说明
+### 启动命令
 
-| 端口    | 用途           | 说明                    |
-| ------- | -------------- | ----------------------- |
-| `7006`  | 后端 API 服务  | Egg.js 默认开发端口     |
-| `7005`  | 前端开发服务   | Nuxt 3 默认开发端口     |
+```shell
+# 1. 构建镜像并后台启动容器
+# 首次启动或代码更新后，优先用这个命令
+docker compose up -d --build
+
+# 2. 查看容器运行状态
+docker compose ps
+
+# 3. 持续查看应用日志
+# 适合排查启动失败、接口报错、数据库初始化等问题
+docker compose logs -f storyweaver-app
+
+# 4. 停止并移除容器
+docker compose down
+```
+
+### 访问地址
+
+启动成功后可直接访问：
+
+- 前台首页：`http://127.0.0.1:7006/`
+- 后端健康检查：`http://127.0.0.1:7006/api/health`
+- 管理后台：`http://127.0.0.1:7006/admin`
 
 ### 数据持久化
 
-默认日志目录会挂载到宿主机。如需持久化上传文件或数据库，可在 Docker Compose 中添加 volumes：
+Docker 运行产生的数据默认保存在宿主机以下目录：
+
+```shell
+./docker-data/storyweaver-api/data
+./docker-data/storyweaver-api/logs
+./docker-data/storyweaver-api/run
+```
+
+其中：
+
+- `data`：SQLite 数据库文件
+- `logs`：后端运行日志
+- `run`：运行时文件
+
+### 服务端口说明
+
+
+| 端口     | 用途        | 说明            |
+| ------ | --------- | ------------- |
+| `7006` | 后端 API 服务 | Egg.js 默认开发端口 |
+| `7005` | 前端开发服务    | Nuxt 3 默认开发端口 |
+
+
+### 数据持久化
+
+当前 Compose 已默认挂载以下目录：
 
 ```yaml
 volumes:
-  - ./storyweaver-api/data:/app/data
-  - ./storyweaver-api/logs:/app/logs
-  - ./storyweaver-api/run:/app/run
+  - ./docker-data/storyweaver-api/data:/app/storyweaver-api/data
+  - ./docker-data/storyweaver-api/logs:/app/storyweaver-api/logs
+  - ./docker-data/storyweaver-api/run:/app/storyweaver-api/run
 ```
 
 ### 常用操作命令
 
 ```shell
+# 重新构建并启动（更新版本时使用）
+docker compose up -d --build
+
+# 仅启动已有镜像（代码未变时使用）
+docker compose up -d
+
 # 查看容器状态
-docker-compose ps
+docker compose ps
 
 # 查看实时日志
-docker-compose logs -f
+docker compose logs -f storyweaver-app
 
 # 停止服务
-docker-compose down
-
-# 重新构建并启动（更新版本时使用）
-docker-compose up -d --build
+docker compose down
 
 # 进入容器调试
-docker exec -it 容器名 sh
+docker exec -it storyweaver-app sh
 ```
 
 > ⚠️ 首次登录信息见 [本机安装 - 启动服务](#2-启动服务)
@@ -202,8 +212,9 @@ docker exec -it 容器名 sh
 
 > [!CAUTION]
 > 🚧 **PR 提交规范** 🚧
-> 
-> <!-- 待补充：PR 分支规范、提交信息规范 -->
+>
+>
+>
 > 请将 PR 提交到指定开发分支（待补充具体分支名）
 
 ## 开发环境准备
@@ -214,108 +225,63 @@ docker exec -it 容器名 sh
 ## 快速启动项目
 
 1. **克隆项目**
-
-   **从 GitHub 克隆：**
-
-   ```bash
-   git clone https://github.com/openfrees/toonflow.git
-   ```
-
+  **从 GitHub 克隆：**
    **从 Gitee 克隆（国内推荐）：**
-
-   ```bash
-   git clone https://gitee.com/open_free/toonflow.git
-   ```
-
 2. **安装依赖**
-
-   请先在项目根目录下执行以下命令以安装依赖项：
-
-   ```bash
-   cd storyweaver-api && npm install
-   cd ../storyweaver-web && npm install
-   cd ../electron && npm install
-   ```
-
+  请先在项目根目录下执行以下命令以安装依赖项：
 3. **启动开发环境**
-
-   本项目包含 **后端 API 服务** 和 **前端页面** 两部分，请根据需要选择启动方式：
-
-   - **方式一：仅启动后端服务（开发调试用）**
-
-     ```bash
-     cd storyweaver-api
-     npm run dev
-     ```
-
-     > ⚠️ 此命令仅启动后端 API 服务，**不包含前端页面**。如需同时使用前端页面，请配合前端项目单独启动，或使用 Electron 桌面模式。
-
-   - **方式二：启动前端页面**
-
-     ```bash
-     cd storyweaver-web
-     npm run dev
-     ```
-
-   - **方式三：启动 Electron 桌面客户端（推荐完整体验）**
-
-     ```bash
-     cd electron
-     npm run dev
-     ```
-
-     > 此命令会启动 Electron 桌面窗口，配合后端服务使用，开箱即用。适合想要完整体验所有功能的开发者。
-
+  本项目包含 **后端 API 服务** 和 **前端页面** 两部分，请根据需要选择启动方式：
+  - **方式一：仅启动后端服务（开发调试用）**
+    ```bash
+    cd storyweaver-api
+    npm run dev
+    ```
+    > ⚠️ 此命令仅启动后端 API 服务，**不包含前端页面**。如需同时使用前端页面，请配合前端项目单独启动，或使用 Electron 桌面模式。
+  - **方式二：启动前端页面**
+    ```bash
+    cd storyweaver-web
+    npm run dev
+    ```
+  - **方式三：启动 Electron 桌面客户端（推荐完整体验）**
+    ```bash
+    cd electron
+    npm run dev
+    ```
+    > 此命令会启动 Electron 桌面窗口，配合后端服务使用，开箱即用。适合想要完整体验所有功能的开发者。
    **三种模式对比：**
 
-   | 命令           | 启动内容                 | 前端页面 | 适用场景                         |
-   | -------------- | ------------------------ | -------- | -------------------------------- |
-   | `npm run dev`（api） | 仅后端 API | ❌ 无    | 后端开发调试、配合前端项目联调   |
-   | `npm run dev`（web） | 仅前端页面 | ✅ 有    | 前端开发调试   |
-   | `npm run dev`（electron） | Electron 桌面端   | ✅ 内置  | 完整功能体验、桌面客户端开发调试 |
+  | 命令                      | 启动内容         | 前端页面 | 适用场景             |
+  | ----------------------- | ------------ | ---- | ---------------- |
+  | `npm run dev`（api）      | 仅后端 API      | ❌ 无  | 后端开发调试、配合前端项目联调  |
+  | `npm run dev`（web）      | 仅前端页面        | ✅ 有  | 前端开发调试           |
+  | `npm run dev`（electron） | Electron 桌面端 | ✅ 内置 | 完整功能体验、桌面客户端开发调试 |
 
 4. **项目打包**
-
-   - 前端本地静态生成：
-
-     ```bash
-     cd storyweaver-web
-     npm run generate:local
-     ```
-
-   - 前端生产环境构建：
-
-     ```bash
-     npm run build:prod
-     ```
-
-   - 打包为 Windows 平台可执行程序：
-
-     ```bash
-     cd electron
-     npm run build:win
-     ```
-
-   - 打包为 Mac 平台可执行程序：
-
-     ```bash
-     cd electron
-     npm run build:mac
-     ```
-
-   - 全部平台打包：
-
-     ```bash
-     cd electron
-     npm run build:all
-     ```
-
+  - 前端本地静态生成：
+  - 前端生产环境构建：
+    ```bash
+    npm run build:prod
+    ```
+  - 打包为 Windows 平台可执行程序：
+    ```bash
+    cd electron
+    npm run build:win
+    ```
+  - 打包为 Mac 平台可执行程序：
+    ```bash
+    cd electron
+    npm run build:mac
+    ```
+  - 全部平台打包：
+    ```bash
+    cd electron
+    npm run build:all
+    ```
 5. **代码质量检查**
-
-   ```bash
+  ```bash
    cd storyweaver-api
    npm run test
-   ```
+  ```
 
 ## 前端开发
 
@@ -323,12 +289,14 @@ docker exec -it 容器名 sh
 
 常用命令：
 
-| 命令 | 说明 |
-| --- | --- |
-| `npm run dev` | 本地开发（加载 `.env.localhost`） |
-| `npm run generate:local` | 本地模式静态生成 |
-| `npm run generate:prod` | 生产环境静态生成 |
-| `npm run build:prod` | 生产环境 SSR 构建 |
+
+| 命令                       | 说明                        |
+| ------------------------ | ------------------------- |
+| `npm run dev`            | 本地开发（加载 `.env.localhost`） |
+| `npm run generate:local` | 本地模式静态生成                  |
+| `npm run generate:prod`  | 生产环境静态生成                  |
+| `npm run build:prod`     | 生产环境 SSR 构建               |
+
 
 ## 项目结构
 
@@ -357,12 +325,14 @@ docker exec -it 容器名 sh
 
 # 🔗 相关仓库
 
-| 仓库             | 说明                               | GitHub                                             | Gitee                                            |
-| ---------------- | ---------------------------------- | -------------------------------------------------- | ------------------------------------------------ |
-| **知剧AI** | 完整项目（本仓库，推荐） | [GitHub](https://github.com/openfrees/toonflow.git) | [Gitee](https://gitee.com/open_free/toonflow.git) |
-| **storyweaver-web** | 前端源代码（当前仓库子目录）       | 同上 | 同上 |
-| **storyweaver-api** | 后端源代码（当前仓库子目录）       | 同上 | 同上 |
-| **electron** | 桌面端源代码（当前仓库子目录）       | 同上 | 同上 |
+
+| 仓库                  | 说明              | GitHub                                              | Gitee                                             |
+| ------------------- | --------------- | --------------------------------------------------- | ------------------------------------------------- |
+| **知剧AI**            | 完整项目（本仓库，推荐）    | [GitHub](https://github.com/openfrees/toonflow.git) | [Gitee](https://gitee.com/open_free/toonflow.git) |
+| **storyweaver-web** | 前端源代码（当前仓库子目录）  | 同上                                                  | 同上                                                |
+| **storyweaver-api** | 后端源代码（当前仓库子目录）  | 同上                                                  | 同上                                                |
+| **electron**        | 桌面端源代码（当前仓库子目录） | 同上                                                  | 同上                                                |
+
 
 > 💡 **提示**：如果您只是想使用知剧AI，直接下载本仓库的客户端即可。如需二次开发或定制，请克隆完整仓库。
 
@@ -377,12 +347,12 @@ docker exec -it 容器名 sh
 - `🧩 AI 剧本生成增强` 支持更多 AI 模型接入，优化剧本结构与对白质量
 - `📄 小说转剧本优化` 支持多格式文本导入，强化章节解析与剧情线梳理
 
-2. 生产流程优化
+1. 生产流程优化
 
 - `👗 分镜管理增强` 强化分镜与剧本场景的关联，支持批量生成与调整
 - `📦 批量处理/任务队列` 支持多章节同时处理，后台任务管理，进度实时监控
 
-3. 部署与体验增强
+1. 部署与体验增强
 
 - `🐳 Docker 部署模板` 提供开箱即用的 docker-compose.yml
 - `📱 多端适配` 优化移动端体验，完善桌面端功能
@@ -391,15 +361,15 @@ docker exec -it 容器名 sh
 
 # 👨‍👩‍👧‍👦 微信交流群
 
-<!-- 待补充：微信群二维码、拉群助手 -->
 
-<!-- 交流群 1 -->
 
-<!-- 交流群 2 -->
+
+
+
 
 拉群小助手:
 
-<!-- <img src="./docs/QR.png" alt="知剧AI Logo" height="400"/> -->
+
 
 > 微信群二维码待补充，有了之后把上面注释取消即可。
 
@@ -407,14 +377,15 @@ docker exec -it 容器名 sh
 
 # 💌 联系我们
 
-<!-- 联系邮箱 -->
+
+
 📧 邮箱：[toms6688@foxmail.com](mailto:toms6688@foxmail.com?subject=知剧AI咨询)
 
 ---
 
 # 📜 许可证
 
-知剧AI 采用**个人学习与非商业研究许可协议**发布，许可证详情见 [`LICENSE`](./LICENSE)。
+知剧AI 采用**个人学习与非商业研究许可协议**发布，许可证详情见 `[LICENSE](./LICENSE)`。
 
 你可以在遵守许可协议全部条款的前提下：
 
@@ -429,7 +400,6 @@ docker exec -it 容器名 sh
 - 销售、转售、出租、授权、分发源码、安装包、镜像或二次开发版本
 
 如需获得商业授权许可，请通过邮箱与我们联系。
-
 
 ---
 
@@ -448,19 +418,9 @@ docker exec -it 容器名 sh
 - [AI SDK](https://ai-sdk.dev/) - 面向 TypeScript 的 AI 工具包
 - [Zod](https://zod.dev/) - TypeScript 优先的模式验证库
 
-<!-- 待补充：如果有赞助商或支持单位，可以按下面格式添加 -->
-<!--
-<table>
-  <tr>
-    <td>
-      <img src="./docs/sponsored/xxx.png" alt="赞助商 Logo" width="48">
-    </td>
-    <td>
-      <b>赞助商名称</b> 提供 XXX 赞助
-      <a href="https://xxx.com/">[官网]</a>
-    </td>
-  </tr>
-</table>
--->
+
+
+
 
 ##### copyright © 知剧AI
+

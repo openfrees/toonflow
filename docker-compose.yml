@@ -1,0 +1,31 @@
+services:
+  storyweaver-app:
+    container_name: storyweaver-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NUXT_PUBLIC_API_BASE: ""
+        NUXT_PUBLIC_SIDEBAR_API_BASE: "https://api.zhijuu.com"
+        NUXT_PUBLIC_DEPLOY_MODE: "localhost"
+        NUXT_PUBLIC_BAIDU_ANALYTICS_KEY: ""
+    environment:
+      DEPLOY_MODE: localhost
+      EGG_SERVER_ENV: prod
+      NODE_ENV: production
+      LISTEN_HOST: 0.0.0.0
+      PORT: 7006
+      ZHIJUAI_LOG_DIR: /app/storyweaver-api/logs
+    ports:
+      - "7006:7006"
+    volumes:
+      - ./docker-data/storyweaver-api/data:/app/storyweaver-api/data
+      - ./docker-data/storyweaver-api/logs:/app/storyweaver-api/logs
+      - ./docker-data/storyweaver-api/run:/app/storyweaver-api/run
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:7006/api/health').then((res)=>process.exit(res.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
